@@ -115,3 +115,21 @@ gh api --method PUT repos/clankernative/cli/branches/main/protection --input .gi
 Verify the active server settings rather than treating this file as enforcement.
 Report the checks actually completed, the inspected commit and any limitations.
 Local or mocked checks never establish live provider or Platform qualification.
+
+## Login adapter review
+
+`docs/LOGIN.md` defines the implemented human auth contract and the separate live
+instance gate. Tests cover ephemeral RSA-signed ID tokens (including wrong
+issuer/audience/domain/nonce/expiry/signature), PKCE, a real loopback callback,
+instance binding changes, cookie/CSRF validation, bounded malformed responses,
+redaction, refresh rotation and local-first logout. Headless process tests prove
+login refuses before browser/credential-store work. Provider/app/store mocks do
+not qualify native credential storage or hosted Google/IAP access.
+
+TLS uses Rustls with one AWS-LC provider. Linux Secret Service uses the native
+D-Bus adapter with encrypted communication and vendored libdbus; macOS uses
+Keychain Services. The lockfile keeps one compatible procedural-macro generation
+across the graph, including Clap 4.5.60 and Serde 1.0.228. Review upgrades together;
+the duplicate-version ban remains enabled with no package skips. The pinned TLS
+packages' ISC/BSD and Mozilla root data's CDLA licenses have exact-version
+approvals in deny.toml; the general license allowlist remains unchanged.

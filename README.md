@@ -4,9 +4,12 @@ The new Rust CLI for Day 2, in `clankernative/cli`, alongside
 [`clankernative/platform`](https://github.com/clankernative/platform).
 
 The CLI catalogs public command use cases and manages **active app owners**
-through a selected local platform installation. `catalog` and `roadmap` remain
-offline. Authentication, secret values, SQLite export and other operational
-commands are planned; their names in the catalog are not executable commands yet.
+through a selected local platform installation. `login`, `whoami` and `logout`
+implement browser authentication for company-configured Google IAP apps, with
+credentials in the OS store. Companies must configure discovery and allowlist
+their desktop OAuth client; see [company login](docs/LOGIN.md).
+`catalog` and `roadmap` remain offline. Secret values, SQLite export and other
+operational commands are planned.
 
 ## Start here
 
@@ -17,6 +20,7 @@ commands are planned; their names in the catalog are not executable commands yet
 - [Architecture](docs/ARCHITECTURE.md): the new Rust frontend and existing
   platform ownership boundary.
 - [App owners](docs/OWNERS.md): local operator commands, permissions and receipts.
+- [Company login](docs/LOGIN.md): employee sign-in and required instance setup.
 - [Machine-readable catalog](catalog/legacy-cli.json) and
   [phase definitions](catalog/roadmap.json): embedded in the binary.
 
@@ -40,6 +44,15 @@ cargo run --locked -- roadmap M1 --json
 ```
 
 Use `cargo build --locked --release` to create `target/release/day2`.
+Native TLS builds require a C/C++ toolchain; some targets also need CMake. Linux
+builds the vendored D-Bus adapter. On a configured company app:
+
+```console
+day2 login --instance https://tools.company.example
+day2 whoami --json
+day2 logout
+```
+
 The embedded catalogs require no source checkout, network, login, platform
 installation or local configuration at runtime. `catalog` accepts an exact
 legacy command or a namespace such as `secrets`; `--phase` narrows catalog results.
@@ -77,6 +90,9 @@ context or platform rejection, and `5` for invalid/bounded/timed-out platform
 responses. Unknown mutation outcomes are never retried automatically.
 Exit `130` reports an interrupted local command; it can also have an unknown
 mutation outcome.
+Authentication commands use exit `3` for required login, rejected identity,
+unavailable credentials, refused responses or transport failure. Login errors
+never include provider response bodies or credential values.
 
 ## Verify
 

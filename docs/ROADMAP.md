@@ -7,7 +7,9 @@ not a line-for-line port or a v1 compatibility program.
 The inventory accounts for 41 legacy spellings. Local app-owner commands now
 implement the permission foundation for later secret values and snapshot export;
 they are new commands rather than additional historical v1 parser leaves.
-M0 and M0.1 are complete; other operational successors are planned. Dates and effort
+M0 and M0.1 are complete. M1's human login client is implemented with local/mock
+evidence; company discovery, IAP/OAuth setup and live qualification remain required
+per [LOGIN.md](LOGIN.md). Other operational successors are planned. Dates and effort
 estimates are intentionally unset until the local integration contract and hosted
 service scope are known.
 
@@ -60,7 +62,7 @@ secret services are designed and qualified.
 | Gap | Existing foundation | Work required before CLI support |
 | --- | --- | --- |
 | Standalone local integration | Source-bound Roc frontend, private Rust broker and pinned operational recipes | Reviewed versioned entry point, relocation/dependency closure, exact platform compatibility and target qualification |
-| Hosted human auth | IAP validation and app sessions | Instance-selected OAuth/bootstrap path, credential storage, no-browser flow and hosted end-to-end tests |
+| Hosted human auth | IAP validation/app sessions and implemented desktop login client | Publish discovery, allowlist company desktop OAuth client, qualify the real hosted flow and native credential stores |
 | Managed machine access | Fixed-family credential API admission and receipt polling | Selected live authority/key/epoch/identity adapters, consumer and installation qualification; no blanket machine-login fallback |
 | Directory/onboarding | Authority, instance config and durable control kernel | Authorized directory provider, canonical access validation and authenticated create/status/approval API |
 | Snapshot operations | Local online backup/restore and artifact integrity | Remote snapshot index/capture/export, read-only inspection, execution/byte budgets and app/owner authorization |

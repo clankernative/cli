@@ -9,8 +9,10 @@ rather than publishing placeholder source identities.
 
 The inventory contains 41 spellings: 39 canonical commands, the `alerts` alias
 and retired `metrics`. These are requirements, not executable capability claims.
-Only `catalog`, `roadmap` and the documented local `app owners` commands are
-implemented. See [owner management](OWNERS.md) and [architecture](ARCHITECTURE.md).
+`catalog`, `roadmap`, local `app owners`, and company-configured human
+`login`/`whoami`/`logout` are implemented. Auth is marked `implemented_unqualified`
+until live instance qualification; see [company login](LOGIN.md),
+[owner management](OWNERS.md) and [architecture](ARCHITECTURE.md).
 
 | Historical spelling | Public use case | Proposed command | Phase |
 | --- | --- | --- | --- |

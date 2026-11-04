@@ -16,13 +16,19 @@ use std::{
 )]
 mod owners;
 
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Keep authentication APIs binary-internal, as required by unreachable_pub."
+)]
+mod auth;
+
 #[derive(Parser)]
 #[command(
     version,
-    about = "Day 2 CLI — app ownership, command inventory and roadmap"
+    about = "Day 2 CLI — company login, app ownership and command inventory"
 )]
 #[command(
-    after_help = "App owner commands require an explicitly selected local platform CLI.\nSecret values and SQLite export are not implemented.\nHelp and version use text output; --json/--agent applies to command results and errors."
+    after_help = "Login requires company discovery and an IAP-allowlisted desktop OAuth client; see docs/LOGIN.md.\nApp owner commands require an explicitly selected local platform CLI.\nSecret values and SQLite export are not implemented.\nHelp and version use text output; --json/--agent applies to command results and errors."
 )]
 struct Cli {
     /// Emit one versioned JSON result (also --agent)
@@ -34,6 +40,12 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Sign in to a company's Google IAP protected app using your browser
+    Login(auth::Login),
+    /// Verify your saved identity against the selected app
+    Whoami(auth::Context),
+    /// Remove local credentials and end the saved app session
+    Logout(auth::Context),
     /// Manage an app through the selected platform installation
     App {
         #[command(subcommand)]
@@ -63,6 +75,7 @@ enum AppCommand {
     },
 }
 
+#[derive(Debug)]
 struct Failure {
     exit_code: u8,
     code: &'static str,
@@ -90,16 +103,16 @@ fn phase_id(roadmap: &Roadmap, input: &str) -> Result<String, Failure> {
 
 fn catalog_text(operations: &[&Operation], detail: bool) -> String {
     let mut output = String::from(
-        "Command use cases → proposed Day 2 support\nAll operational successors below are planned.\n\n",
+        "Command use cases → Day 2 delivery status\nimplemented_unqualified requires live company qualification; other successors remain planned.\n\n",
     );
     for operation in operations {
         // Formatting these built-in values into a String cannot fail.
         let _ = writeln!(
             output,
-            "{:<32} {:<3} {:<18} {}",
+            "{:<32} {:<3} {:<24} {}",
             operation.legacy_command,
             operation.phase,
-            operation.disposition,
+            operation.implementation_status,
             operation.proposed_command.as_deref().unwrap_or("Omit")
         );
         if detail {
@@ -123,6 +136,9 @@ fn catalog_text(operations: &[&Operation], detail: bool) -> String {
 
 fn run(cli: &Cli, catalog: &Catalog, roadmap: &Roadmap) -> Result<(Value, String), Failure> {
     match &cli.command {
+        Command::Login(options) => auth::login(options, cli.json),
+        Command::Whoami(context) => auth::whoami(context),
+        Command::Logout(context) => auth::logout(context),
         Command::App {
             command: AppCommand::Owners { command },
         } => owners::run(command).map_err(|failure| Failure {
@@ -273,6 +289,9 @@ fn main() -> ExitCode {
         }
     };
     let command = match cli.command {
+        Command::Login(_) => "login",
+        Command::Whoami(_) => "whoami",
+        Command::Logout(_) => "logout",
         Command::App { .. } => "app owners",
         Command::Catalog { .. } => "catalog",
         Command::Roadmap { .. } => "roadmap",
