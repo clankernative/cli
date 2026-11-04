@@ -1,0 +1,50 @@
+[package]
+name = "day2-cli"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+description = "The Rust command-line interface for Day 2"
+repository = "https://github.com/clankernative/cli"
+publish = false
+
+[[bin]]
+name = "day2"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["raw_value"] }
+
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.30", default-features = false, features = ["signal", "process"] }
+signal-hook = "0.3"
+
+[lints.rust]
+unsafe_code = "forbid"
+unused_must_use = "deny"
+rust_2018_idioms = { level = "deny", priority = -1 }
+unreachable_pub = "warn"
+missing_debug_implementations = "warn"
+missing_docs = "warn"
+
+[lints.rustdoc]
+broken_intra_doc_links = "deny"
+bare_urls = "deny"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+# Deliberate restrictions, rather than the contradictory full restriction group.
+dbg_macro = "deny"
+todo = "deny"
+unimplemented = "deny"
+mem_forget = "deny"
+exit = "deny"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unreachable = "deny"
+as_conversions = "deny"
+allow_attributes = "deny"

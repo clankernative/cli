@@ -1,0 +1,4 @@
+# Assertions may fail loudly in tests; production code must return errors.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true

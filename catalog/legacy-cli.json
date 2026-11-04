@@ -1,0 +1,943 @@
+{
+  "schema_version": 2,
+  "audited_on": "2026-11-02",
+  "platform_source": {
+    "repository": "https://github.com/clankernative/platform",
+    "revision": "c203a2262d19d5b3667172a67fe3126a6efcdba6",
+    "version": null
+  },
+  "definitions": {
+    "counting": "41 historical command spellings: 39 canonical commands, one alias (alerts), one retired command (metrics).",
+    "implementation_status": "planned means absent from this Rust binary; omitted means deliberately excluded. All historical operation successors remain planned. New app owners list/check/add/remove are implemented separately from this historical inventory, alongside catalog and roadmap.",
+    "day2_support": "Public platform references identify the reviewed source; they do not establish qualified hosted support or live provider readiness.",
+    "proposed_command": "Proposed Day 2 UX, subject to the reviewed integration boundary. These strings are documentation, not executable next_actions.",
+    "disposition": "adapt uses an existing foundation; redesign changes auth/UX; reimplement uses Rust; replace uses Roc app conventions; needs-service requires a hosted/provider contract; instance-extension is optional; consolidate maps an alias to one command; omit excludes retirement.",
+    "publication": "Generalized public use cases only. Private source locations, parser metadata, company endpoints and operational implementation details are intentionally excluded."
+  },
+  "operations": [
+    {
+      "legacy_command": "update",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "distribution",
+      "phase": "M6",
+      "disposition": "redesign",
+      "proposed_command": "day2 update",
+      "behavior": "Update the CLI through a verified release channel.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Ship deterministic completion or verified release assets through a reviewed distribution contract.",
+      "safety_contract": "Verify executable identity and preserve package-manager ownership; completion must not grant authority.",
+      "dependencies": [
+        "reviewed distribution contract"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/README.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/RELEASING.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/UiDependency.roc"
+      ]
+    },
+    {
+      "legacy_command": "login",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "identity",
+      "phase": "M1",
+      "disposition": "redesign",
+      "proposed_command": "day2 login",
+      "behavior": "Start an explicitly selected authentication flow.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Implement typed instance selection and reviewed authentication and credential-store contracts.",
+      "safety_contract": "Bind credentials to the selected instance, origin, identity and purpose; never import private sessions implicitly.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/EDGE-IDENTITY.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/web.rs"
+      ]
+    },
+    {
+      "legacy_command": "whoami",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "identity",
+      "phase": "M1",
+      "disposition": "redesign",
+      "proposed_command": "day2 whoami",
+      "behavior": "Show the selected identity and session status.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Implement typed instance selection and reviewed authentication and credential-store contracts.",
+      "safety_contract": "Bind credentials to the selected instance, origin, identity and purpose; never import private sessions implicitly.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/EDGE-IDENTITY.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/web.rs"
+      ]
+    },
+    {
+      "legacy_command": "token",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "identity",
+      "phase": "M1",
+      "disposition": "redesign",
+      "proposed_command": "day2 token",
+      "behavior": "Request an explicitly scoped short-lived credential.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Implement typed instance selection and reviewed authentication and credential-store contracts.",
+      "safety_contract": "Bind credentials to the selected instance, origin, identity and purpose; never import private sessions implicitly.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/EDGE-IDENTITY.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/web.rs"
+      ]
+    },
+    {
+      "legacy_command": "call",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "api",
+      "phase": "M1",
+      "disposition": "redesign",
+      "proposed_command": "day2 call APP METHOD PATH",
+      "behavior": "Invoke an authorized application API operation.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Consume reviewed application API contracts with typed inputs and structured outcomes.",
+      "safety_contract": "Enforce authorization, bounded I/O and exact request identity; do not redirect credentials or blindly retry mutations.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/web_api.rs",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/managed_credentials/ingress.rs",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/MCP.md"
+      ]
+    },
+    {
+      "legacy_command": "openapi",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "api",
+      "phase": "M1",
+      "disposition": "adapt",
+      "proposed_command": "day2 openapi APP",
+      "behavior": "Read the selected application API contract.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Consume reviewed application API contracts with typed inputs and structured outcomes.",
+      "safety_contract": "Enforce authorization, bounded I/O and exact request identity; do not redirect credentials or blindly retry mutations.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/openapi.rs",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/MCP.md"
+      ]
+    },
+    {
+      "legacy_command": "db connect",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "database",
+      "phase": "M6",
+      "disposition": "instance-extension",
+      "proposed_command": "day2 db connect ENVIRONMENT",
+      "behavior": "Connect to an instance-approved database through a supervised tunnel.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Integrate an optional instance-selected database adapter with bounded process supervision.",
+      "safety_contract": "Keep database credentials and destinations in private instance configuration; constrain process lifetime and authority.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/README.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/deploy/integrations/README.md"
+      ]
+    },
+    {
+      "legacy_command": "directory search",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "directory",
+      "phase": "M4",
+      "disposition": "needs-service",
+      "proposed_command": "day2 directory search --kind KIND",
+      "behavior": "Resolve principals through an authorized directory service.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use a versioned directory service with explicit instance and permission scope.",
+      "safety_contract": "Return only authorized bounded directory results; never infer authorization from a display name.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/AUTHORITY.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CONTROL-PLANE.md"
+      ]
+    },
+    {
+      "legacy_command": "app provision",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "delivery",
+      "phase": "M4",
+      "disposition": "needs-service",
+      "proposed_command": "day2 app provision",
+      "behavior": "Request application provisioning through the selected control service.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use a reviewed versioned platform delivery interface; retain operational ordering in platform recipes.",
+      "safety_contract": "Bind requests and receipts to the selected instance and exact source; preserve authority and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CONTROL-PLANE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/deploy/integrations/README.md"
+      ]
+    },
+    {
+      "legacy_command": "prototype new",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "development",
+      "phase": "M2",
+      "disposition": "replace",
+      "proposed_command": "day2 app new",
+      "behavior": "Create application source using a reviewed platform template.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Invoke reviewed platform development recipes with explicit source and development configuration.",
+      "safety_contract": "Preserve local data unless reset is explicit; do not acquire production credentials for ordinary development.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/APP-LAYOUT.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/examples/reports/README.md"
+      ]
+    },
+    {
+      "legacy_command": "prototype publish",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "delivery",
+      "phase": "M4",
+      "disposition": "replace",
+      "proposed_command": "day2 app publish",
+      "behavior": "Submit reviewed application source through the platform delivery interface.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use a reviewed versioned platform delivery interface; retain operational ordering in platform recipes.",
+      "safety_contract": "Bind requests and receipts to the selected instance and exact source; preserve authority and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/APP-LAYOUT.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CONTROL-PLANE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/Ci.roc"
+      ]
+    },
+    {
+      "legacy_command": "secrets list",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets list",
+      "behavior": "List authorized application secret metadata.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets prepare",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets prepare add|update",
+      "behavior": "Prepare metadata for an explicitly authorized secret change.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets add",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets add",
+      "behavior": "Request creation of an application secret through protected material entry.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets update",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets update",
+      "behavior": "Request an authorized application secret update.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets latest",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets latest",
+      "behavior": "Inspect the latest authorized secret-change request.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets status",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets status REQUEST",
+      "behavior": "Read the status of an authorized secret-change request.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets wait",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets wait REQUEST",
+      "behavior": "Wait for an authorized secret-change request within a fixed deadline.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets recover-exact",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets recover-exact REQUEST",
+      "behavior": "Request an explicitly authorized recovery of a secret change.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets recover-transition",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets recover-transition REQUEST",
+      "behavior": "Request an explicitly authorized recovery of a secret transition.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets recover-terminated",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets recover-terminated REQUEST",
+      "behavior": "Request an explicitly authorized recovery of an interrupted secret change.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets retry",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets retry REQUEST",
+      "behavior": "Request a reviewed retry of an existing secret-change request.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets reconcile",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets reconcile REQUEST",
+      "behavior": "Observe and reconcile an authorized secret-change request.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "secrets install-agent-guidance",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "secrets",
+      "phase": "M5",
+      "disposition": "needs-service",
+      "proposed_command": "day2 secrets install-agent-guidance",
+      "behavior": "Install reviewed secret-handling guidance for application contributors.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Establish reviewed, authorized secret-management contracts before implementing these planned operations.",
+      "safety_contract": "Keep material out of arguments, diagnostics and replay evidence; enforce exact app and request scope and reconcile uncertain outcomes.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RUNTIME-SECRET-LIFECYCLE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/RELEASE-WORKFLOW.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md"
+      ]
+    },
+    {
+      "legacy_command": "local-dev",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "development",
+      "phase": "M2",
+      "disposition": "adapt",
+      "proposed_command": "day2 local-dev [SOURCE]",
+      "behavior": "Run an application locally with development configuration.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Invoke reviewed platform development recipes with explicit source and development configuration.",
+      "safety_contract": "Preserve local data unless reset is explicit; do not acquire production credentials for ordinary development.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/LOCAL-DEVELOPMENT.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/LocalDev.roc",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/README.md"
+      ]
+    },
+    {
+      "legacy_command": "logs",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "observability",
+      "phase": "M3",
+      "disposition": "needs-service",
+      "proposed_command": "day2 logs APP",
+      "behavior": "Read authorized application logs.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use an authorized instance-selected observability interface with bounded read operations.",
+      "safety_contract": "Scope reads to the selected app and current actor; redact sensitive provider and application data.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/LOCAL-DEVELOPMENT.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CONTROL-PLANE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/web_api.rs"
+      ]
+    },
+    {
+      "legacy_command": "traces",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "observability",
+      "phase": "M3",
+      "disposition": "needs-service",
+      "proposed_command": "day2 traces APP",
+      "behavior": "Read authorized application traces.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use an authorized instance-selected observability interface with bounded read operations.",
+      "safety_contract": "Scope reads to the selected app and current actor; redact sensitive provider and application data.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/LOCAL-DEVELOPMENT.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CONTROL-PLANE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/web_api.rs"
+      ]
+    },
+    {
+      "legacy_command": "metrics",
+      "legacy_state": "retired",
+      "alias_of": null,
+      "implementation_status": "omitted",
+      "category": "observability",
+      "phase": "M0",
+      "disposition": "omit",
+      "proposed_command": null,
+      "behavior": "Retired historical command; no replacement implementation is planned.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use an authorized instance-selected observability interface with bounded read operations.",
+      "safety_contract": "Scope reads to the selected app and current actor; redact sensitive provider and application data.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/README.md"
+      ]
+    },
+    {
+      "legacy_command": "monitors",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "observability",
+      "phase": "M3",
+      "disposition": "needs-service",
+      "proposed_command": "day2 monitors APP",
+      "behavior": "Read application monitor definitions and status.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use an authorized instance-selected observability interface with bounded read operations.",
+      "safety_contract": "Scope reads to the selected app and current actor; redact sensitive provider and application data.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/LOCAL-DEVELOPMENT.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CONTROL-PLANE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/web_api.rs"
+      ]
+    },
+    {
+      "legacy_command": "alerts",
+      "legacy_state": "alias",
+      "alias_of": "monitors",
+      "implementation_status": "planned",
+      "category": "observability",
+      "phase": "M3",
+      "disposition": "consolidate",
+      "proposed_command": "day2 monitors APP",
+      "behavior": "Historical alias of monitors; no separate implementation is planned.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use an authorized instance-selected observability interface with bounded read operations.",
+      "safety_contract": "Scope reads to the selected app and current actor; redact sensitive provider and application data.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CONTROL-PLANE.md"
+      ]
+    },
+    {
+      "legacy_command": "dashboards",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "observability",
+      "phase": "M3",
+      "disposition": "needs-service",
+      "proposed_command": "day2 dashboards APP",
+      "behavior": "Read authorized application dashboard links.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use an authorized instance-selected observability interface with bounded read operations.",
+      "safety_contract": "Scope reads to the selected app and current actor; redact sensitive provider and application data.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/LOCAL-DEVELOPMENT.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CONTROL-PLANE.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/web_api.rs"
+      ]
+    },
+    {
+      "legacy_command": "sqlite backups",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "snapshots",
+      "phase": "M3",
+      "disposition": "adapt",
+      "proposed_command": "day2 sqlite backups APP",
+      "behavior": "List metadata for authorized application snapshots.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use a reviewed platform snapshot interface with explicit selection and verified artifact identity.",
+      "safety_contract": "Authorize each snapshot read or export, verify integrity and enforce read-only query and resource bounds.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/Backup.roc",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2-ops/src/backup.rs",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/TRANSACTIONAL-AUTHORITY.md"
+      ]
+    },
+    {
+      "legacy_command": "sqlite download",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "snapshots",
+      "phase": "M3",
+      "disposition": "adapt",
+      "proposed_command": "day2 sqlite download APP",
+      "behavior": "Download an explicitly selected and authorized application snapshot.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use a reviewed platform snapshot interface with explicit selection and verified artifact identity.",
+      "safety_contract": "Authorize each snapshot read or export, verify integrity and enforce read-only query and resource bounds.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/Backup.roc",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2-ops/src/backup.rs",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/TRANSACTIONAL-AUTHORITY.md"
+      ]
+    },
+    {
+      "legacy_command": "sqlite tables",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "snapshots",
+      "phase": "M3",
+      "disposition": "adapt",
+      "proposed_command": "day2 sqlite tables APP",
+      "behavior": "Inspect table names in an authorized snapshot.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use a reviewed platform snapshot interface with explicit selection and verified artifact identity.",
+      "safety_contract": "Authorize each snapshot read or export, verify integrity and enforce read-only query and resource bounds.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/Backup.roc",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2-ops/src/backup.rs",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/TRANSACTIONAL-AUTHORITY.md"
+      ]
+    },
+    {
+      "legacy_command": "sqlite schema",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "snapshots",
+      "phase": "M3",
+      "disposition": "adapt",
+      "proposed_command": "day2 sqlite schema APP",
+      "behavior": "Inspect the schema of an authorized snapshot.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use a reviewed platform snapshot interface with explicit selection and verified artifact identity.",
+      "safety_contract": "Authorize each snapshot read or export, verify integrity and enforce read-only query and resource bounds.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/Backup.roc",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2-ops/src/backup.rs",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/TRANSACTIONAL-AUTHORITY.md"
+      ]
+    },
+    {
+      "legacy_command": "sqlite query",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "snapshots",
+      "phase": "M3",
+      "disposition": "adapt",
+      "proposed_command": "day2 sqlite query APP",
+      "behavior": "Run a bounded read-only query against an authorized snapshot.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Use a reviewed platform snapshot interface with explicit selection and verified artifact identity.",
+      "safety_contract": "Authorize each snapshot read or export, verify integrity and enforce read-only query and resource bounds.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/ops/Backup.roc",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2-ops/src/backup.rs",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/TRANSACTIONAL-AUTHORITY.md"
+      ]
+    },
+    {
+      "legacy_command": "completion bash",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "distribution",
+      "phase": "M1",
+      "disposition": "reimplement",
+      "proposed_command": "day2 completion bash",
+      "behavior": "Generate completion definitions for Bash.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Ship deterministic completion or verified release assets through a reviewed distribution contract.",
+      "safety_contract": "Verify executable identity and preserve package-manager ownership; completion must not grant authority.",
+      "dependencies": [
+        "reviewed distribution contract"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/README.md"
+      ]
+    },
+    {
+      "legacy_command": "completion zsh",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "distribution",
+      "phase": "M1",
+      "disposition": "reimplement",
+      "proposed_command": "day2 completion zsh",
+      "behavior": "Generate completion definitions for Zsh.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Ship deterministic completion or verified release assets through a reviewed distribution contract.",
+      "safety_contract": "Verify executable identity and preserve package-manager ownership; completion must not grant authority.",
+      "dependencies": [
+        "reviewed distribution contract"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/README.md"
+      ]
+    },
+    {
+      "legacy_command": "completion fish",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "distribution",
+      "phase": "M1",
+      "disposition": "reimplement",
+      "proposed_command": "day2 completion fish",
+      "behavior": "Generate completion definitions for Fish.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Ship deterministic completion or verified release assets through a reviewed distribution contract.",
+      "safety_contract": "Verify executable identity and preserve package-manager ownership; completion must not grant authority.",
+      "dependencies": [
+        "reviewed distribution contract"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/README.md"
+      ]
+    },
+    {
+      "legacy_command": "completion refresh-apps",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "distribution",
+      "phase": "M1",
+      "disposition": "redesign",
+      "proposed_command": "day2 completion refresh-apps",
+      "behavior": "Refresh authorized application discovery for shell completion.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Ship deterministic completion or verified release assets through a reviewed distribution contract.",
+      "safety_contract": "Verify executable identity and preserve package-manager ownership; completion must not grant authority.",
+      "dependencies": [
+        "reviewed distribution contract"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/Instance.roc",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/README.md"
+      ]
+    },
+    {
+      "legacy_command": "logout",
+      "legacy_state": "active",
+      "alias_of": null,
+      "implementation_status": "planned",
+      "category": "identity",
+      "phase": "M1",
+      "disposition": "redesign",
+      "proposed_command": "day2 logout",
+      "behavior": "Remove the selected locally stored session.",
+      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
+      "required_work": "Implement typed instance selection and reviewed authentication and credential-store contracts.",
+      "safety_contract": "Bind credentials to the selected instance, origin, identity and purpose; never import private sessions implicitly.",
+      "dependencies": [
+        "reviewed platform contract",
+        "explicit instance configuration"
+      ],
+      "day2_evidence": [
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/EDGE-IDENTITY.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/docs/CREDENTIALS.md",
+        "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/crates/day2/src/web.rs"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+name: CLI CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+    types: [checks_requested]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 9 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cli-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+  RUSTDOCFLAGS: -D warnings
+
+jobs:
+  check:
+    name: check (${{ matrix.os }})
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install repository-pinned Rust toolchain
+        run: rustup show active-toolchain
+      - run: cargo fmt --all --check
+      - run: cargo clippy --locked --all-targets --all-features -- -D warnings
+      - name: Enforce catalog library effect boundary
+        run: cargo clippy --locked --lib --all-features -- -D warnings -F clippy::disallowed_methods -F clippy::disallowed_types -F clippy::disallowed_macros
+        env:
+          CLIPPY_CONF_DIR: ${{ github.workspace }}/architecture
+          CARGO_TARGET_DIR: target/architecture
+      - run: cargo test --locked --all-targets --all-features
+      - run: cargo test --locked --doc --all-features
+      - run: cargo doc --locked --no-deps --all-features --document-private-items
+      - run: cargo build --locked --release --all-targets --all-features
+      - name: Reject tracked-file changes from verification
+        run: git diff --exit-code
+
+  secrets:
+    name: secrets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - run: gh release download v8.30.1 --repo gitleaks/gitleaks --pattern gitleaks_8.30.1_linux_x64.tar.gz --dir /tmp/scanners
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: sha256sum --check "$GITHUB_WORKSPACE/.github/gitleaks.sha256"
+        working-directory: /tmp/scanners
+      - run: tar -xzf /tmp/scanners/gitleaks_8.30.1_linux_x64.tar.gz -C /tmp/scanners
+      - run: /tmp/scanners/gitleaks dir . --redact=100 --config .gitleaks.toml
+      - run: /tmp/scanners/gitleaks git . --redact=100 --config .gitleaks.toml --log-opts=--all
+
+  dependencies:
+    name: dependencies
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install repository-pinned Rust toolchain
+        run: rustup show active-toolchain
+      - run: gh release download cargo-audit/v0.22.2 --repo RustSec/rustsec --pattern cargo-audit-x86_64-unknown-linux-gnu-v0.22.2.tgz --dir /tmp/scanners
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: gh release download 0.20.2 --repo EmbarkStudios/cargo-deny --pattern cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz --dir /tmp/scanners
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: sha256sum --check "$GITHUB_WORKSPACE/.github/cargo-audit.sha256" "$GITHUB_WORKSPACE/.github/cargo-deny.sha256"
+        working-directory: /tmp/scanners
+      - run: tar -xzf /tmp/scanners/cargo-audit-x86_64-unknown-linux-gnu-v0.22.2.tgz -C /tmp/scanners
+      - run: tar -xzf /tmp/scanners/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz -C /tmp/scanners
+      - run: /tmp/scanners/cargo-audit-x86_64-unknown-linux-gnu-v0.22.2/cargo-audit audit --deny warnings
+      - run: /tmp/scanners/cargo-deny-0.20.2-x86_64-unknown-linux-musl/cargo-deny --locked --all-features check --deny warnings bans licenses sources
+
+  workflows:
+    name: workflows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - run: gh release download v1.7.12 --repo rhysd/actionlint --pattern actionlint_1.7.12_linux_amd64.tar.gz --dir /tmp/scanners
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: gh release download v1.32.0 --repo zizmorcore/zizmor --pattern zizmor-x86_64-unknown-linux-gnu.tar.gz --dir /tmp/scanners
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: sha256sum --check "$GITHUB_WORKSPACE/.github/workflow-tools.sha256"
+        working-directory: /tmp/scanners
+      - run: tar -xzf /tmp/scanners/actionlint_1.7.12_linux_amd64.tar.gz -C /tmp/scanners
+      - run: tar -xzf /tmp/scanners/zizmor-x86_64-unknown-linux-gnu.tar.gz -C /tmp/scanners
+      - run: /tmp/scanners/actionlint -color
+      - run: /tmp/scanners/zizmor --offline --no-progress --pedantic .github/workflows
+
+  verify:
+    name: verify
+    if: ${{ always() }}
+    needs: [check, secrets, dependencies, workflows]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every gate to succeed
+        env:
+          CHECK: ${{ needs.check.result }}
+          SECRETS: ${{ needs.secrets.result }}
+          DEPENDENCIES: ${{ needs.dependencies.result }}
+          WORKFLOWS: ${{ needs.workflows.result }}
+        run: test "$CHECK" = success && test "$SECRETS" = success && test "$DEPENDENCIES" = success && test "$WORKFLOWS" = success

@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "phases": [
+    {
+      "id": "M0",
+      "title": "Public use-case inventory and Rust foundation",
+      "status": "complete",
+      "depends_on": [],
+      "deliverables": [
+        "Publish generalized use cases, aliases and retirement decisions without private audit or parser metadata.",
+        "Ship offline catalog/roadmap text and JSON commands, Cargo lockfile and focused process tests."
+      ],
+      "platform_work": [
+        "Record the Rust frontend versus platform-owned operational recipe boundary; no platform changes in this increment."
+      ],
+      "acceptance": [
+        "All 41 historical spellings have a public summary, a disposition, a delivery phase and explicit planned/omitted status.",
+        "The Rust binary exposes only implemented commands; usage and not-found errors are structured in JSON mode."
+      ]
+    },
+    {
+      "id": "M0.1",
+      "title": "Active app owners and sensitive-read permission foundation",
+      "status": "complete",
+      "depends_on": [
+        "M0"
+      ],
+      "deliverables": [
+        "Add local app owners list/check/add/remove through a versioned platform CLI contract.",
+        "Use active policy admins for audit.read, secrets.list, secrets.read and sqlite.download checks.",
+        "Apply owner-only changes with installation-operator authorization, expected stamps, last-owner protection and idempotent receipts."
+      ],
+      "platform_work": [
+        "Use the platform owner guard and atomic native authority mutation through the existing Roc recipe host.",
+        "Secret values, SQLite export and production remote identity remain separate work."
+      ],
+      "acceptance": [
+        "Unlisted operators and ordinary app users cannot change owners; installation operators do not implicitly pass owner checks.",
+        "Pending desired membership/resource edits never activate with an owner change; active and desired owner drift is visible.",
+        "Stale stamps, changed retry inputs, malformed identities and last-owner removal are refused; retry cannot resurrect a revoked owner.",
+        "Restored/disabled apps deny sensitive-read permissions; guards require the protected transaction."
+      ]
+    },
+    {
+      "id": "M1",
+      "title": "Context, identity and API access",
+      "status": "planned",
+      "depends_on": [
+        "M0"
+      ],
+      "deliverables": [
+        "Add explicit instance/environment/app context and exact-origin credential storage; no company defaults.",
+        "Implement local-session call/openapi first, then qualified hosted human login/whoami/logout and explicit edge-token export.",
+        "Preserve raw HTTP output, bounded requests, body sources and exact idempotency keys; add generated shell completion and selected-context app cache."
+      ],
+      "platform_work": [
+        "Review and establish a versioned standalone CLI integration contract; existing day2-host/workflow protocols are private.",
+        "Qualify hosted browser-session bootstrap and IAP client configuration; managed credential readiness is a separate installation gate."
+      ],
+      "acceptance": [
+        "A local Reports query and idempotent command succeed via the real generated API; a 202 receipt can be polled.",
+        "Wrong instance/origin/audience, expired session, missing CSRF and redirect credential leaks have negative checks.",
+        "Headless mode fails without prompting; no v1 token import, ambient credential fallback or uncertain write retry.",
+        "Completion advertises only implemented commands and performs no implicit network/login work."
+      ]
+    },
+    {
+      "id": "M2",
+      "title": "Roc app creation and managed local development",
+      "status": "planned",
+      "depends_on": [
+        "M1"
+      ],
+      "deliverables": [
+        "Add app new from the canonical Roc app layout with exact provenance, atomic destination placement and no remote.",
+        "Expose app describe, build/check/test and local-dev through the reviewed platform surface.",
+        "Provide persistent state, watch/rebuild, detach/status/stop/logs/follow, explicit reset and development-only bindings."
+      ],
+      "platform_work": [
+        "Provide a relocatable/versioned recipe entry point or coordinate an in-place platform CLI frontend replacement.",
+        "Keep build/admission/check/local-dev composition in existing ops recipes, including required evidence and UI dependency verification."
+      ],
+      "acceptance": [
+        "A new app builds, passes its app-owned checks and serves locally without a production login.",
+        "Data survives normal restarts; reset is explicit; stop cannot terminate unrelated processes.",
+        "Dry-run performs no network/Git/write effects and rejects collisions, symlink escapes and invalid layouts.",
+        "CLI output identifies platform version, admitted artifact and protected verification evidence."
+      ]
+    },
+    {
+      "id": "M3",
+      "title": "Snapshots and app operations visibility",
+      "status": "planned",
+      "depends_on": [
+        "M1",
+        "M2",
+        "M0.1"
+      ],
+      "deliverables": [
+        "Add local snapshot list/export/tables/schema/query against verified read-only bundles, then authorized remote capture/index/download.",
+        "Add bounded app-scoped logs, traces, monitors and trusted dashboard links through an instance service.",
+        "Add explicit snapshot import into local development, separate from default app startup."
+      ],
+      "platform_work": [
+        "Expose authenticated snapshot and observability contracts and qualify instance provider bindings.",
+        "Preserve online backup, artifact identity, restore epoch rotation and explicit grant reactivation."
+      ],
+      "acceptance": [
+        "Snapshot tampering, wrong app/database, archive traversal, invalid SQL and over-budget queries are refused.",
+        "SELECT inspection cannot mutate a live database; fresh capture is treated as an explicit effect.",
+        "No tenant credentials or unrestricted provider query language reach CLI output; owner/app authorization has negative checks.",
+        "Restore retains data but does not reactivate copied grants; GoLinks persisted links remain intact."
+      ]
+    },
+    {
+      "id": "M4",
+      "title": "Directory, app provisioning and publication",
+      "status": "planned",
+      "depends_on": [
+        "M1",
+        "M2"
+      ],
+      "deliverables": [
+        "Implement bounded canonical directory resolution and server-side access revalidation.",
+        "Add durable app provision and app publish with exact source snapshot/commit, review-only and resumable request receipts.",
+        "Use instance-selected source hosting, review, isolated build and release capabilities."
+      ],
+      "platform_work": [
+        "Provide an authenticated create/status/approval service and qualify source, infrastructure and release adapters.",
+        "Use the existing durable journal and approved recipes; never create an app-authored CI or second configuration catalog."
+      ],
+      "acceptance": [
+        "Ambiguous/truncated/suspended directory matches cannot grant access.",
+        "Interrupted requests resume with the same identity and source digest; duplicate delivery creates no duplicate resource.",
+        "A changed source snapshot requires fresh approval; secrets and local state never enter source exports.",
+        "Unknown mutation outcomes reconcile by exact journal/provider evidence; review-only cannot merge or deploy."
+      ]
+    },
+    {
+      "id": "M5",
+      "title": "Secret lifecycle and guarded recovery",
+      "status": "planned",
+      "depends_on": [
+        "M1",
+        "M4",
+        "M0.1"
+      ],
+      "deliverables": [
+        "Add metadata-only list/prepare/latest/status/wait and owned agent-guidance installation.",
+        "Add human-only hidden add/update entry through the approved material channel and versioned request receipts.",
+        "Expose reconcile/retry/exact/transition/terminated recovery only where Day 2 has a reviewed equivalent."
+      ],
+      "platform_work": [
+        "Build authenticated operator/material-entry service contracts over runtime-secret resource/version and consumer-protection models.",
+        "Qualify provider projection/readback and exact workflow-history recovery; do not emulate v1 endpoint semantics in the client."
+      ],
+      "acceptance": [
+        "No credential values enter argv, environment, agent JSON, receipts, logs, journal or generated source.",
+        "Hidden input cannot fall back to visible input; cancellation/EOF does not submit; multiline content is preserved.",
+        "Wrong request/run/task/checkpoint, stale authority, redirects and ambiguous recovery responses are refused without automatic mutation retry.",
+        "Accepted/queued/active/failed/unknown states remain distinct; an accepted mutation is not proof of runtime use."
+      ]
+    },
+    {
+      "id": "M6",
+      "title": "Distribution and optional instance database tooling",
+      "status": "planned",
+      "depends_on": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5"
+      ],
+      "deliverables": [
+        "Publish reproducible, checksummed CLI releases and package-manager installations for a tested target matrix.",
+        "Implement update using installation ownership, atomic standalone replacement and exact release integrity.",
+        "Qualify optional instance-owned PostgreSQL/IAP db connect independently from the SQLite app runtime."
+      ],
+      "platform_work": [
+        "Resolve platform bundle portability and version negotiation before claiming a standalone operational distribution.",
+        "Keep bastions, source hosts, cloud projects and provider credentials in private instance configuration."
+      ],
+      "acceptance": [
+        "Clean-machine install and supported-platform smoke checks pass without a platform source checkout.",
+        "Tampered assets, interrupted update and package-manager ownership are handled safely; incompatible platform versions fail clearly.",
+        "Tunnel phase timeouts, occupied ports, PostgreSQL readiness and Ctrl-C cleanup are checked with bounded fixtures.",
+        "No v1 compatibility command or retired metrics operation is shipped."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+title = "CLI source and history secret scanning"
+
+[extend]
+useDefault = true
