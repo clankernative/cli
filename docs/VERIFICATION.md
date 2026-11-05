@@ -65,7 +65,7 @@ There are no path filters, production credentials or privileged PR triggers.
 
 | Gate | Evidence |
 | --- | --- |
-| `check (ubuntu-24.04)` / `check (macos-14)` | Formatting, strict lint, library boundary, process/compiler tests, doctests, rustdoc and release compilation. Verification must not change tracked files. |
+| `check (ubuntu-24.04)` / `check (macos-15)` | Formatting, strict lint, library boundary, process/compiler tests, doctests, rustdoc and release compilation. Verification must not change tracked files. |
 | `secrets` | Gitleaks scans current files and all fetched Git history with full redaction and no repository exclusions. |
 | `dependencies` | Cargo audit denies advisory warnings; cargo-deny rejects duplicate versions, wildcard requirements, unapproved registries/Git sources and third-party licenses outside the explicit allowlist. |
 | `workflows` | Actionlint validates workflows and shell steps; offline pedantic Zizmor checks workflow security. |
