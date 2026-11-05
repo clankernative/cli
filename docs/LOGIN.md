@@ -122,8 +122,11 @@ diagnostics. Callback handling checks the exact loopback host, path, method,
 state, duplicate fields and bounded input. Offline catalogs never consult login.
 
 The local tests use ephemeral RSA keys, mock provider/app responses, an in-memory
-credential store and a real loopback callback. They verify client behavior and
-negative boundaries. They do not qualify Google, a company's IAP deployment or a
+credential store, fragmented real loopback callbacks and a local HTTPS server
+with ephemeral certificates. The HTTPS tests exercise the selected TLS provider,
+certificate/hostname checks, redirect refusal and response-byte limits. They
+verify client behavior and negative boundaries. They do not qualify Google, a
+company's IAP deployment or a
 native desktop credential store. The rest of M1 (`call`, `openapi`, completion and
 token export) remains planned; this change does not claim a general remote API
 client or managed-machine authentication.

@@ -119,7 +119,10 @@ Local or mocked checks never establish live provider or Platform qualification.
 ## Login adapter review
 
 `docs/LOGIN.md` defines the implemented human auth contract and the separate live
-instance gate. Tests cover ephemeral RSA-signed ID tokens (including wrong
+instance gate. A local HTTPS server with ephemeral certificates exercises the
+production TLS provider, certificate/hostname verification, redirect refusal and
+response-byte bounds; fragmented loopback requests cover accepted-socket mode.
+Tests cover ephemeral RSA-signed ID tokens (including wrong
 issuer/audience/domain/nonce/expiry/signature), PKCE, a real loopback callback,
 instance binding changes, cookie/CSRF validation, bounded malformed responses,
 redaction, refresh rotation and local-first logout. Headless process tests prove

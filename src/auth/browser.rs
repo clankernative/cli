@@ -85,6 +85,9 @@ impl Callback {
 }
 
 fn read_request(stream: &mut TcpStream, deadline: Instant) -> Result<String> {
+    // Accepted sockets can inherit nonblocking mode on macOS. Fragmented browser
+    // requests still need to wait within the existing callback deadline.
+    stream.set_nonblocking(false).map_err(|_| invalid())?;
     stream
         .set_read_timeout(Some(Duration::from_secs(2)))
         .map_err(|_| invalid())?;
@@ -259,7 +262,13 @@ mod tests {
         let sender = thread::spawn(move || {
             for state in ["wrong", "expected"] {
                 let mut stream = TcpStream::connect(&host).unwrap();
-                write!(stream, "GET /oauth/callback?state={state}&code=example-code HTTP/1.1\r\nHost: {host}\r\n\r\n").unwrap();
+                write!(
+                    stream,
+                    "GET /oauth/callback?state={state}&code=example-code HTTP/1.1\r\n"
+                )
+                .unwrap();
+                thread::sleep(Duration::from_millis(75));
+                write!(stream, "Host: {host}\r\n\r\n").unwrap();
                 let mut response = String::new();
                 stream.read_to_string(&mut response).unwrap();
                 assert!(!response.contains("example-code"));
