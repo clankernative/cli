@@ -89,8 +89,9 @@ These values are public configuration, never credentials. The example client ID
 is synthetic and cannot sign anyone in. `instance_origin` must equal the selected
 origin exactly, without a trailing slash. Origins use lowercase ASCII DNS names
 without ports, paths, user info, query strings or fragments. Installation and
-environment labels use lowercase letters/digits/hyphens, at most 100 characters,
-with alphanumeric ends. The hosted domain is an exact lowercase DNS name.
+environment identifiers match the platform: at most 48 lowercase letters,
+digits or underscores, starting with a letter; `day2_` and `sqlite_` prefixes
+are reserved. The hosted domain is an exact lowercase DNS name.
 Unknown fields, versions and identity schemes are refused. A discovery change
 requires a fresh login before a saved credential is dispatched to the app.
 

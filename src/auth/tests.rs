@@ -118,6 +118,32 @@ fn origins_and_discovery_refuse_ambiguous_destinations() {
 }
 
 #[test]
+fn discovery_uses_platform_instance_identifiers_and_dns_domain_labels() {
+    let origin = Origin::parse(INSTANCE).unwrap();
+    let mut discovery = binding();
+    discovery.installation = "company_tools".into();
+    discovery.environment = "cli_canary".into();
+    discovery.identity.hosted_domain = "my-company.example".into();
+    discovery.validate(&origin).unwrap();
+    for name in [
+        "",
+        "Company",
+        "1company",
+        "company-tools",
+        "day2_internal",
+        "sqlite_private",
+    ] {
+        discovery.installation = name.into();
+        assert!(discovery.validate(&origin).is_err(), "{name}");
+    }
+    discovery.installation = "a".repeat(49);
+    assert!(discovery.validate(&origin).is_err());
+    discovery.installation = "company_tools".into();
+    discovery.identity.hosted_domain = "company_tools.example".into();
+    assert!(discovery.validate(&origin).is_err());
+}
+
+#[test]
 fn identity_is_verified_online_and_credentials_never_cross_instance() {
     let origin = Origin::parse(INSTANCE).unwrap();
     let store = Memory::default();

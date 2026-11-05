@@ -129,8 +129,8 @@ impl Discovery {
         let domain = &identity.hosted_domain;
         if self.schema_version != 1
             || self.instance_origin != origin.0
-            || !label(&self.installation)
-            || !label(&self.environment)
+            || !instance_identifier(&self.installation)
+            || !instance_identifier(&self.environment)
             || !client.is_some_and(|prefix| {
                 !prefix.is_empty()
                     && prefix.len() <= 200
@@ -148,6 +148,19 @@ impl Discovery {
         }
         Ok(())
     }
+}
+
+// Match the platform's instance installation/environment identifiers. DNS
+// labels have a different alphabet; an underscore is valid in an instance name.
+fn instance_identifier(value: &str) -> bool {
+    !value.is_empty()
+        && value.len() <= 48
+        && value.as_bytes().first().is_some_and(u8::is_ascii_lowercase)
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_')
+        && !value.starts_with("day2_")
+        && !value.starts_with("sqlite_")
 }
 
 fn label(value: &str) -> bool {
