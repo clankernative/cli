@@ -142,6 +142,7 @@ fn parse_request(request: &str, host: &str, state: &Secret) -> Result<Secret> {
         if !matches!(
             name.as_ref(),
             "state"
+                | "iss"
                 | "code"
                 | "error"
                 | "error_description"
@@ -157,7 +158,9 @@ fn parse_request(request: &str, host: &str, state: &Secret) -> Result<Secret> {
             return Err(invalid());
         }
     }
-    if fields.get("state") != Some(&state.0) {
+    if fields.get("state") != Some(&state.0)
+        || fields.get("iss").map(String::as_str) != Some(super::oidc::ISSUER)
+    {
         return Err(invalid());
     }
     if fields.contains_key("error") && !fields.contains_key("code") {
@@ -233,7 +236,7 @@ mod tests {
     fn callback_checks_state_host_method_path_and_duplicates() {
         let state = Secret("synthetic-state".into());
         let host = "127.0.0.1:12345";
-        let valid = "GET /oauth/callback?state=synthetic-state&code=example-code HTTP/1.1\r\nHost: 127.0.0.1:12345\r\n\r\n";
+        let valid = "GET /oauth/callback?state=synthetic-state&iss=https%3A%2F%2Faccounts.google.com&code=example-code HTTP/1.1\r\nHost: 127.0.0.1:12345\r\n\r\n";
         assert_eq!(
             parse_request(valid, host, &state).unwrap().0,
             "example-code"
@@ -256,6 +259,47 @@ mod tests {
     }
 
     #[test]
+    fn callback_requires_exact_google_response_issuer() {
+        let state = Secret("synthetic-state".into());
+        let request = |query: &str| {
+            format!(
+                "GET /oauth/callback?state=synthetic-state&{query} HTTP/1.1\r\nHost: 127.0.0.1:12345\r\n\r\n"
+            )
+        };
+        let accepted = request(
+            "iss=https%3A%2F%2Faccounts.google.com&code=example-code&scope=email+openid&authuser=0&hd=company.example&prompt=consent",
+        );
+        assert_eq!(
+            parse_request(&accepted, "127.0.0.1:12345", &state)
+                .unwrap()
+                .0,
+            "example-code"
+        );
+        for query in [
+            "code=example-code",
+            "iss=&code=example-code",
+            "iss=https://attacker.example&code=example-code",
+            "iss=http://accounts.google.com&code=example-code",
+            "iss=accounts.google.com&code=example-code",
+            "iss=https://accounts.google.com/&code=example-code",
+            "iss=https://accounts.google.com&iss=https://accounts.google.com&code=example-code",
+            "iss=https://accounts.google.com&code=example-code&unknown=value",
+        ] {
+            assert!(parse_request(&request(query), "127.0.0.1:12345", &state).is_err());
+        }
+        let cancelled = request("iss=https://accounts.google.com&error=access_denied");
+        assert!(matches!(
+            parse_request(&cancelled, "127.0.0.1:12345", &state),
+            Err(error) if error.code == "login_cancelled"
+        ));
+        let wrong_issuer = request("iss=https://attacker.example&error=access_denied");
+        assert!(matches!(
+            parse_request(&wrong_issuer, "127.0.0.1:12345", &state),
+            Err(error) if error.code == "invalid_auth_response"
+        ));
+    }
+
+    #[test]
     fn actual_loopback_rejects_wrong_state_then_accepts_one_valid_callback() {
         let callback = Callback::bind(Duration::from_secs(3)).unwrap();
         let host = callback.host.clone();
@@ -264,7 +308,7 @@ mod tests {
                 let mut stream = TcpStream::connect(&host).unwrap();
                 write!(
                     stream,
-                    "GET /oauth/callback?state={state}&code=example-code HTTP/1.1\r\n"
+                    "GET /oauth/callback?state={state}&iss=https%3A%2F%2Faccounts.google.com&code=example-code HTTP/1.1\r\n"
                 )
                 .unwrap();
                 thread::sleep(Duration::from_millis(75));

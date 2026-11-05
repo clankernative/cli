@@ -12,6 +12,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use super::{Identity, Result, Saved, Secret, fail, http, invalid, login_required, secret_shape};
 
 const AUTHORIZATION: &str = "https://accounts.google.com/o/oauth2/v2/auth";
+pub(super) const ISSUER: &str = "https://accounts.google.com";
 pub(super) const TOKEN: &str = "https://oauth2.googleapis.com/token";
 pub(super) const JWKS: &str = "https://www.googleapis.com/oauth2/v3/certs";
 
@@ -101,10 +102,8 @@ pub(super) struct Claims {
 
 impl Claims {
     fn validate(&self, identity: &Identity, nonce: Option<&str>, at: u64) -> Result<()> {
-        if !matches!(
-            self.iss.as_str(),
-            "https://accounts.google.com" | "accounts.google.com"
-        ) || self.aud != identity.desktop_client.client_id
+        if !matches!(self.iss.as_str(), ISSUER | "accounts.google.com")
+            || self.aud != identity.desktop_client.client_id
             || self
                 .azp
                 .as_ref()

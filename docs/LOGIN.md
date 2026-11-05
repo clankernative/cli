@@ -132,7 +132,11 @@ HTTPS requests have a 15-second deadline, a 5-second connection deadline, a
 redirects are disabled; token exchanges and logout are never retried by the CLI.
 Provider bodies, callback codes, tokens and cookies never enter result JSON or
 diagnostics. Callback handling checks the exact loopback host, path, method,
-state, duplicate fields and bounded input. Offline catalogs never consult login.
+state, duplicate fields and bounded input. It requires exactly one `iss` equal
+to `https://accounts.google.com`, including on cancellation responses, as defined
+by [Google's RFC 9207 authorization response](https://developers.google.com/identity/openid-connect/reference#response-parameters).
+Missing, duplicate or different issuers are refused before token exchange.
+Offline catalogs never consult login.
 
 The local tests use ephemeral RSA keys, mock provider/app responses, an in-memory
 credential store, fragmented real loopback callbacks and a local HTTPS server
@@ -140,6 +144,17 @@ with ephemeral certificates. The HTTPS tests exercise the selected TLS provider,
 certificate/hostname checks, redirect refusal and response-byte limits. They
 verify client behavior and negative boundaries. They do not qualify Google, a
 company's IAP deployment or a
-native desktop credential store. The rest of M1 (`call`, `openapi`, completion and
+native desktop credential store.
+
+A separate private company canary has passed real browser login on macOS,
+Google/IAP/app identity verification, fresh-process Keychain persistence, token
+refresh with an unchanged subject, and confirmed local/app-session logout.
+Refresh was triggered by changing only the scoped local expiry marker; token
+exchange and verification used the real Google endpoints. Exact instance,
+runtime and client evidence stays in private company records. This establishes
+that tested macOS flow, not other companies, Linux Secret Service, or live
+wrong-account/revoked-grant cases; those still need their own qualification.
+
+The rest of M1 (`call`, `openapi`, completion and
 token export) remains planned; this change does not claim a general remote API
 client or managed-machine authentication.
