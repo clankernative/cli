@@ -60,7 +60,7 @@ impl Proof {
     pub(super) fn authorization_url(&self, identity: &Identity, redirect: &str) -> String {
         let query = form_urlencoded::Serializer::new(String::new())
             .extend_pairs([
-                ("client_id", identity.desktop_client_id.as_str()),
+                ("client_id", identity.desktop_client.client_id.as_str()),
                 ("redirect_uri", redirect),
                 ("response_type", "code"),
                 ("scope", "openid email"),
@@ -104,11 +104,11 @@ impl Claims {
         if !matches!(
             self.iss.as_str(),
             "https://accounts.google.com" | "accounts.google.com"
-        ) || self.aud != identity.desktop_client_id
+        ) || self.aud != identity.desktop_client.client_id
             || self
                 .azp
                 .as_ref()
-                .is_some_and(|party| party != &identity.desktop_client_id)
+                .is_some_and(|party| party != &identity.desktop_client.client_id)
             || !self.email_verified
             || self.hd != identity.hosted_domain
             || !human_email(&self.email, &identity.hosted_domain)
@@ -269,7 +269,8 @@ pub(super) fn exchange(
         TOKEN.into(),
         &[
             ("grant_type", "authorization_code"),
-            ("client_id", &identity.desktop_client_id),
+            ("client_id", &identity.desktop_client.client_id),
+            ("client_secret", &identity.desktop_client.client_secret.0),
             ("code", &code.0),
             ("redirect_uri", redirect),
             ("code_verifier", &proof.verifier.0),
@@ -285,7 +286,14 @@ pub(super) fn refresh(transport: &impl http::Transport, saved: &Saved, at: u64) 
         TOKEN.into(),
         &[
             ("grant_type", "refresh_token"),
-            ("client_id", &saved.binding.identity.desktop_client_id),
+            (
+                "client_id",
+                &saved.binding.identity.desktop_client.client_id,
+            ),
+            (
+                "client_secret",
+                &saved.binding.identity.desktop_client.client_secret.0,
+            ),
             ("refresh_token", &refresh.0),
         ],
     );

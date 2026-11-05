@@ -110,8 +110,27 @@ struct Discovery {
 #[serde(deny_unknown_fields)]
 struct Identity {
     scheme: Scheme,
-    desktop_client_id: String,
+    desktop_client: DesktopClient,
     hosted_domain: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+struct DesktopClient {
+    client_id: String,
+    client_secret: RegistrationValue,
+}
+
+// Google Desktop registrations are public-client metadata, not user credentials.
+// Still omit the registration value from diagnostics and result envelopes.
+#[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(transparent)]
+struct RegistrationValue(String);
+
+impl std::fmt::Debug for RegistrationValue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("[redacted desktop registration]")
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -124,7 +143,8 @@ impl Discovery {
     fn validate(&self, origin: &Origin) -> Result<()> {
         let identity = &self.identity;
         let client = identity
-            .desktop_client_id
+            .desktop_client
+            .client_id
             .strip_suffix(".apps.googleusercontent.com");
         let domain = &identity.hosted_domain;
         if self.schema_version != 1
@@ -138,6 +158,13 @@ impl Discovery {
                         .bytes()
                         .all(|b| b.is_ascii_alphanumeric() || b == b'-')
             })
+            || !(16..=256).contains(&identity.desktop_client.client_secret.0.len())
+            || !identity
+                .desktop_client
+                .client_secret
+                .0
+                .bytes()
+                .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
             || domain.len() > 253
             || !domain.contains('.')
             || !domain

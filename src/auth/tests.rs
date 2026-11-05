@@ -10,6 +10,7 @@ const INSTANCE: &str = "https://tools.company.example";
 const OTHER: &str = "https://tools.other.example";
 const ACTOR: &str = "employee@company.example";
 const COOKIE: &str = "__Host-day2_reports_aabb=synthetic-cookie-value";
+const REGISTRATION: &str = "synthetic-desktop-registration-value";
 
 #[derive(Default)]
 struct Memory(RefCell<BTreeMap<String, String>>);
@@ -57,7 +58,10 @@ pub(super) fn binding() -> Discovery {
         environment: "production".into(),
         identity: Identity {
             scheme: Scheme::GoogleIap,
-            desktop_client_id: "123-desktop.apps.googleusercontent.com".into(),
+            desktop_client: DesktopClient {
+                client_id: "123-desktop.apps.googleusercontent.com".into(),
+                client_secret: RegistrationValue(REGISTRATION.into()),
+            },
             hosted_domain: "company.example".into(),
         },
     }
@@ -115,6 +119,34 @@ fn origins_and_discovery_refuse_ambiguous_destinations() {
         value[field] = Value::Null;
         assert!(serde_json::from_value::<Discovery>(value).is_err());
     }
+}
+
+#[test]
+fn desktop_registration_is_complete_bounded_and_redacted() {
+    let origin = Origin::parse(INSTANCE).unwrap();
+    for value in [
+        String::new(),
+        "short".into(),
+        "x".repeat(257),
+        "invalid registration value".into(),
+        "https://provider.example/secret".into(),
+    ] {
+        let mut discovery = binding();
+        discovery.identity.desktop_client.client_secret = RegistrationValue(value);
+        assert!(discovery.validate(&origin).is_err());
+    }
+    for field in ["client_id", "client_secret"] {
+        let mut value = serde_json::to_value(binding()).unwrap();
+        value["identity"]["desktop_client"]
+            .as_object_mut()
+            .unwrap()
+            .remove(field);
+        assert!(serde_json::from_value::<Discovery>(value).is_err());
+    }
+    let mut value = serde_json::to_value(binding()).unwrap();
+    value["identity"]["desktop_client"]["refresh_token"] = json!("synthetic-user-token");
+    assert!(serde_json::from_value::<Discovery>(value).is_err());
+    assert!(!format!("{:?}", binding()).contains(REGISTRATION));
 }
 
 #[test]
@@ -187,6 +219,7 @@ fn identity_is_verified_online_and_credentials_never_cross_instance() {
         "synthetic-refresh",
         "synthetic-cookie",
         "synthetic-csrf",
+        REGISTRATION,
     ] {
         assert!(!summary.contains(secret));
     }
@@ -197,7 +230,8 @@ fn changed_company_binding_stops_before_any_credential_dispatch() {
     let origin = Origin::parse(INSTANCE).unwrap();
     for pointer in [
         "/environment",
-        "/identity/desktop_client_id",
+        "/identity/desktop_client/client_id",
+        "/identity/desktop_client/client_secret",
         "/identity/hosted_domain",
         "/instance_origin",
     ] {
@@ -207,7 +241,8 @@ fn changed_company_binding_stops_before_any_credential_dispatch() {
         let mut value = serde_json::to_value(binding()).unwrap();
         *value.pointer_mut(pointer).unwrap() = json!(match pointer {
             "/environment" => "staging",
-            "/identity/desktop_client_id" => "456-other.apps.googleusercontent.com",
+            "/identity/desktop_client/client_id" => "456-other.apps.googleusercontent.com",
+            "/identity/desktop_client/client_secret" => "synthetic-replaced-registration-value",
             "/identity/hosted_domain" => "other.example",
             _ => OTHER,
         });
@@ -329,6 +364,7 @@ fn complete_login_exchanges_pkce_verifies_signed_token_and_establishes_app_sessi
         .collect();
     assert_eq!(exchange["code"], "synthetic-authorization-code");
     assert_eq!(exchange["grant_type"], "authorization_code");
+    assert_eq!(exchange["client_secret"], REGISTRATION);
     assert_eq!(
         oidc::hash(exchange["code_verifier"].as_bytes()),
         fields["code_challenge"]
@@ -336,6 +372,17 @@ fn complete_login_exchanges_pkce_verifies_signed_token_and_establishes_app_sessi
     assert_eq!(requests[1].url, oidc::JWKS);
     assert_eq!(requests[2].url, format!("{INSTANCE}/api/session"));
     assert!(!requests[2].headers.iter().any(|(name, _)| name == "Cookie"));
+    assert!(
+        !requests[2]
+            .body()
+            .is_some_and(|body| body.contains(REGISTRATION))
+    );
+    assert!(
+        !requests[2]
+            .headers
+            .iter()
+            .any(|(_, value)| value.contains(REGISTRATION))
+    );
 }
 
 #[test]
@@ -356,6 +403,13 @@ fn refresh_rotation_is_saved_even_if_subsequent_app_authentication_fails() {
     let error = identify(&mock, &store, &origin, at).err().unwrap();
     assert!(!error.message.contains("private-provider-error-canary"));
     assert_eq!(mock.requests.borrow().len(), 4);
+    let requests = mock.requests.borrow();
+    assert_eq!(requests[1].url, oidc::TOKEN);
+    let refresh: BTreeMap<_, _> = form_urlencoded::parse(requests[1].body().unwrap().as_bytes())
+        .into_owned()
+        .collect();
+    assert_eq!(refresh["client_secret"], REGISTRATION);
+    drop(requests);
     let identity = load(&store, &origin).unwrap();
     assert_eq!(
         identity.refresh_token.unwrap().0,

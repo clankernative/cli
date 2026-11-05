@@ -55,7 +55,11 @@ instance's credentials.
 1. Register an internal **Desktop app** OAuth client owned by the company. Enable
    its intended users on the company's consent configuration. The CLI requests
    only `openid email`, using an authorization code, S256 PKCE, state and nonce.
-   Desktop clients are public clients; this CLI does not accept a client secret.
+   Google requires the Desktop registration's client ID and client secret for
+   token exchange and refresh. Desktop apps are public clients and cannot keep
+   that registration value confidential. The company must explicitly approve
+   publishing this pair for URL-only setup. Never use a confidential Web
+   application secret, service-account key or user token here.
 2. Allowlist that desktop client for IAP programmatic access to the selected app.
    Configure its users' ordinary IAP access and the app's ordinary reader/writer
    permissions. An allowlisted client does not itself grant those permissions.
@@ -79,20 +83,28 @@ instance's credentials.
   "environment": "production",
   "identity": {
     "scheme": "google_iap",
-    "desktop_client_id": "123-desktop.apps.googleusercontent.com",
+    "desktop_client": {
+      "client_id": "123-desktop.apps.googleusercontent.com",
+      "client_secret": "synthetic-desktop-registration-value"
+    },
     "hosted_domain": "company.example"
   }
 }
 ```
 
-These values are public configuration, never credentials. The example client ID
-is synthetic and cannot sign anyone in. `instance_origin` must equal the selected
+These values are intentionally public Desktop registration metadata. They prove
+neither a user identity nor permission to access the app. The example pair is
+synthetic and cannot sign anyone in. The registration value is sent only in
+POST bodies to Google's fixed token endpoint, never the browser authorization
+URL, an app request, result JSON or diagnostics. Both fields are required;
+the value is 16–256 ASCII letters, digits, hyphens or underscores.
+`instance_origin` must equal the selected
 origin exactly, without a trailing slash. Origins use lowercase ASCII DNS names
 without ports, paths, user info, query strings or fragments. Installation and
 environment identifiers match the platform: at most 48 lowercase letters,
 digits or underscores, starting with a letter; `day2_` and `sqlite_` prefixes
 are reserved. The hosted domain is an exact lowercase DNS name.
-Unknown fields, versions and identity schemes are refused. A discovery change
+Unknown fields, partial registrations, versions and identity schemes are refused. A discovery change
 requires a fresh login before a saved credential is dispatched to the app.
 
 4. Qualify `login`, `whoami`, refresh and logout against the real deployment.
