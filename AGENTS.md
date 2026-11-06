@@ -13,7 +13,7 @@ adapters. A new dependency or macro can cross this boundary and requires review;
 the compiler checks are not a hostile-code sandbox. Keep unsafe Rust forbidden.
 
 The executable implements offline `catalog` and `roadmap`, human `login`/`whoami`/
-`logout` per docs/LOGIN.md, and local `app owners` list/check/add/remove through
+`logout` per docs/LOGIN.md, admitted `call`/`openapi` per docs/API.md, and local `app owners` list/check/add/remove through
 the documented platform CLI contract. Auth uses company discovery and the existing
 IAP/app-session channel; it does not provision instance setup or establish live
 qualification. Other planned

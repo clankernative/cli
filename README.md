@@ -8,7 +8,8 @@ through a selected local platform installation. `login`, `whoami` and `logout`
 implement browser authentication for company-configured Google IAP apps, with
 credentials in the OS store. Companies must configure discovery and allowlist
 their desktop OAuth client; see [company login](docs/LOGIN.md).
-`catalog` and `roadmap` remain offline. Secret values, SQLite export and other
+`call` invokes admitted app queries/commands, and `openapi` prints the current
+generated API contract; see [app calls](docs/API.md). `catalog` and `roadmap` remain offline. Secret values, SQLite export and other
 operational commands are planned.
 
 ## Start here
@@ -21,6 +22,7 @@ operational commands are planned.
   platform ownership boundary.
 - [App owners](docs/OWNERS.md): local operator commands, permissions and receipts.
 - [Company login](docs/LOGIN.md): employee sign-in and required instance setup.
+- [App calls](docs/API.md): authenticated OpenAPI, queries, commands and receipts.
 - [Machine-readable catalog](catalog/legacy-cli.json) and
   [phase definitions](catalog/roadmap.json): embedded in the binary.
 
@@ -29,6 +31,12 @@ the `alerts` alias, and retired `metrics`**. Catalog schema 2 contains generaliz
 use cases and public platform evidence. The private source audit, original parser
 metadata, company endpoints and operational implementation details are excluded.
 It does not claim live provider verification.
+
+## Install
+
+See [verified native installers](docs/INSTALL.md) for macOS Apple Silicon and
+Linux x86_64 release archives, checksums, provenance and credential-store requirements.
+The installer preserves any existing `day2` executable.
 
 ## Build and run
 
@@ -59,8 +67,8 @@ legacy command or a namespace such as `secrets`; `--phase` narrows catalog resul
 Phase identifiers are case-insensitive.
 
 The platform already distributes a `day2` executable. Run this project through
-`cargo run` or its explicit binary path during development. Do not replace an
-existing installation until the integration and distribution work is complete.
+`cargo run` or its explicit binary path during development. The verified installer refuses to replace an existing executable; select another
+prefix to keep the employee frontend alongside the operator distribution.
 
 ## Output contract
 
@@ -83,8 +91,8 @@ Planned operations are data, not executable `next_actions`.
 The empty result above illustrates the envelope; real roadmap results contain
 the selected phases. Exit codes are `0` success, `1` internal/output failure,
 `2` usage and `4` no matching command/phase. Human-readable errors use stderr;
-JSON errors use stdout. Operational commands will define additional contracts
-when implemented, including intentional raw payload output for `call`/`openapi`.
+JSON errors use stdout. `call` and `openapi` intentionally print raw API JSON, including with `--json`;
+app HTTP errors return exit 3. See [app calls](docs/API.md) for recovery semantics.
 Owner commands additionally use exit `3` for denied permissions, unavailable
 context or platform rejection, and `5` for invalid/bounded/timed-out platform
 responses. Unknown mutation outcomes are never retried automatically.

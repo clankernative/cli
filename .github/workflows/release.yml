@@ -1,0 +1,102 @@
+name: CLI release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml # zizmor: ignore[self-repository] -- Reusable workflows require ./; $/ is local-action syntax. The called workflow is from this exact tag.
+
+  build:
+    name: Build (${{ matrix.target }})
+    needs: verify
+    permissions:
+      contents: read
+      id-token: write # Sign provenance using GitHub OIDC.
+      attestations: write # Store signed build provenance for consumers.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            target: aarch64-apple-darwin
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      RUSTFLAGS: -D warnings
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - run: rustup show active-toolchain
+      - name: Build the exact tagged source and dependency notices
+        run: sh scripts/package.sh "$TARGET"
+        env:
+          TARGET: ${{ matrix.target }}
+          GH_TOKEN: ${{ github.token }}
+      - name: Attest release archives
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/*.tar.gz
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-${{ matrix.target }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish verified release
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write # Publish the verified tag assets as a GitHub release.
+      id-token: write # Sign provenance using GitHub OIDC.
+      attestations: write # Store signed build provenance for consumers.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+      - name: Check both target archives and prepare release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(find dist -maxdepth 1 -name '*.tar.gz' | wc -l)" -eq 2
+          test -f "dist/day2-cli-${GITHUB_REF_NAME}-aarch64-apple-darwin.tar.gz"
+          test -f "dist/day2-cli-${GITHUB_REF_NAME}-x86_64-unknown-linux-gnu.tar.gz"
+          for archive in dist/*.tar.gz; do
+            gh attestation verify "$archive" --repo "$GITHUB_REPOSITORY" --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref "$GITHUB_REF" --deny-self-hosted-runners
+          done
+          cp install.sh dist/install.sh
+          cd dist
+          sha256sum ./*.tar.gz install.sh | sed 's#  ./#  #' > SHA256SUMS
+      - name: Attest installer and checksums
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            dist/install.sh
+            dist/SHA256SUMS
+      - name: Publish verified employee CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.tar.gz dist/install.sh dist/SHA256SUMS --repo "$GITHUB_REPOSITORY" --verify-tag --draft --title "Day 2 CLI $GITHUB_REF_NAME" --notes-file docs/RELEASE-NOTES.md
+          gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false

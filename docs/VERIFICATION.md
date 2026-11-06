@@ -21,6 +21,11 @@ RUSTDOCFLAGS='-D warnings' cargo doc --locked --no-deps --all-features --documen
 RUSTFLAGS='-D warnings' cargo build --locked --release --all-targets --all-features
 ```
 
+Linux CI additionally runs `sh scripts/qualify-secret-service.sh` against a disposable
+real GNOME Secret Service session, with cross-process access, rotation/deletion and
+unavailable-store refusal. It stores synthetic test values only and supplies no
+human login credentials. The ignored helper is not evidence unless actually run.
+
 All compiler, Clippy and documentation warnings fail CI. Clippy enables `all`,
 `pedantic` and `nursery`, plus selected restrictions against unchecked panics,
 casts, debugging, unfinished implementation, process exits and lint allowances.
@@ -68,7 +73,7 @@ There are no path filters, production credentials or privileged PR triggers.
 | `check (ubuntu-24.04)` / `check (macos-15)` | Formatting, strict lint, library boundary, process/compiler tests, doctests, rustdoc and release compilation. Verification must not change tracked files. |
 | `secrets` | Gitleaks scans current files and all fetched Git history with full redaction and no repository exclusions. |
 | `dependencies` | Cargo audit denies advisory warnings; cargo-deny rejects duplicate versions, wildcard requirements, unapproved registries/Git sources and third-party licenses outside the explicit allowlist. |
-| `workflows` | Actionlint validates workflows and shell steps; offline pedantic Zizmor checks workflow security. |
+| `workflows` | ShellCheck checks installer/packaging scripts; Actionlint validates workflows and shell steps; offline pedantic Zizmor checks workflow security. |
 | `verify` | Always runs and fails unless every prerequisite succeeded, including both OS jobs. Failed, cancelled and skipped jobs cannot produce a passing gate. |
 
 Actions use full commit pins; downloaded scanners use reviewed version and
@@ -137,3 +142,23 @@ across the graph, including Clap 4.5.60 and Serde 1.0.228. Review upgrades toget
 the duplicate-version ban remains enabled with no package skips. The pinned TLS
 packages' ISC/BSD and Mozilla root data's CDLA licenses have exact-version
 approvals in deny.toml; the general license allowlist remains unchanged.
+
+## Release gate
+
+`release.yml` calls this exact revision's complete CI before building tagged native
+archives. Tags must match Cargo's version and be reachable from main. Archive
+builds use the repository-pinned compiler/lockfile, include dependency notices
+harvested with SHA-pinned cargo-about 0.9.3 and a source manifest, and create
+GitHub-hosted provenance attestations. Publishing requires both native builds and
+verifies their attestations. Installer and checksums receive their own attestations.
+The installer checks repository/workflow/tag provenance and checksum before
+installation, refuses existing destinations, and retains notices. One narrow
+Zizmor annotation documents its local-action-only self-repository suggestion on a
+reusable workflow call; GitHub and pinned Actionlint require the `./` workflow
+syntax. No check is disabled or skipped.
+
+`.github/release-tag-rules.json` records two server-applied tag rules: only the
+trusted maintainer can create `v*` refs; no actor bypasses tag update/deletion
+restrictions. These are independent of main's mandatory checks and PR policy.
+Read back actual repository settings before publishing; a configuration file
+alone is not enforcement.

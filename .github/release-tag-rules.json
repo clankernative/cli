@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Release creation: trusted maintainer only",
+    "target": "tag",
+    "enforcement": "active",
+    "bypass_actors": [
+      { "actor_id": 48705139, "actor_type": "User", "bypass_mode": "always" }
+    ],
+    "conditions": { "ref_name": { "include": ["refs/tags/v*"], "exclude": [] } },
+    "rules": [{ "type": "creation" }]
+  },
+  {
+    "name": "Release tags are immutable",
+    "target": "tag",
+    "enforcement": "active",
+    "bypass_actors": [],
+    "conditions": { "ref_name": { "include": ["refs/tags/v*"], "exclude": [] } },
+    "rules": [{ "type": "update" }, { "type": "deletion" }]
+  }
+]

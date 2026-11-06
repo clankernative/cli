@@ -7,6 +7,7 @@ use std::{io::IsTerminal as _, time::Duration};
 
 use super::Failure;
 
+mod api;
 mod browser;
 mod http;
 mod lock;
@@ -39,6 +40,38 @@ pub(super) struct Context {
     /// HTTPS company app origin; defaults to the most recent successful login
     #[arg(long)]
     instance: Option<String>,
+}
+
+#[derive(Args)]
+pub(super) struct Call {
+    #[command(flatten)]
+    context: Context,
+    /// Admitted operation ID from this app's `OpenAPI` document
+    #[arg(required_unless_present = "invocation", conflicts_with = "invocation")]
+    operation: Option<String>,
+    /// JSON input object (defaults to {})
+    #[arg(long, conflicts_with_all = ["input_file", "invocation"])]
+    input: Option<String>,
+    /// Read a bounded JSON input object from this file, or - for stdin
+    #[arg(long, conflicts_with = "invocation")]
+    input_file: Option<std::path::PathBuf>,
+    /// Required for commands; preserve this exact key when reconciling a retry
+    #[arg(long, conflicts_with = "invocation")]
+    idempotency_key: Option<String>,
+    /// Ask commands to return after durable acceptance
+    #[arg(long = "async", conflicts_with = "invocation")]
+    asynchronous: bool,
+    /// Read an existing invocation receipt without dispatching the command again
+    #[arg(long)]
+    invocation: Option<String>,
+}
+
+pub(super) fn openapi(context: &Context) -> Result<api::Output> {
+    api::openapi(context)
+}
+
+pub(super) fn call(options: &Call) -> Result<api::Output> {
+    api::call(options)
 }
 
 fn fail(code: &'static str, message: &'static str) -> Failure {

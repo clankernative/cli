@@ -38,6 +38,7 @@ v1 compatibility shim or maintain two recipe implementations.
 - `src/lib.rs`: typed catalog and roadmap decoding.
 - `src/owners.rs`: local owner arguments, bounded explicit platform CLI execution,
   and versioned result validation. The native platform owns all grants and writes.
+- `src/auth/api.rs`: admitted OpenAPI selection, authenticated app calls and explicit invocation reads.
 - `src/auth.rs` and `src/auth/`: exact-origin company discovery, Google desktop
   OAuth with PKCE, signed identity validation, bounded HTTPS, app sessions and OS
   credential storage. See [company login](LOGIN.md) for deployment prerequisites.
@@ -58,7 +59,7 @@ shared admitted operation catalog used by OpenAPI and MCP.
 Human login selects an exact app origin, installation/environment and company
 OAuth client through versioned public discovery. Tokens, app cookies and the
 selected origin live in the OS credential store. No company defaults are compiled
-into the CLI. Company-wide app discovery and general API calls remain planned.
+into the CLI. Admitted API calls use the current generated contract. Company-wide app discovery remains planned.
 Do not infer authorization from a repo name, app name, email or unverified JWT.
 
 Keep three identities distinct:
