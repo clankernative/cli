@@ -21,8 +21,8 @@ impl Drop for File {
         let _ = std::fs::remove_file(&self.0);
     }
 }
-fn context() -> Context {
-    Context {
+fn context() -> AppContext {
+    AppContext {
         app: "reports".into(),
         auth: auth::Context::default(),
     }

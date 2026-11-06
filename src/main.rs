@@ -1,6 +1,6 @@
 //! Command parsing and text/JSON presentation for app ownership and offline catalogs.
 
-use clap::{Parser, Subcommand, error::ErrorKind};
+use clap::{CommandFactory as _, Parser, Subcommand, error::ErrorKind};
 use day2_cli::{Catalog, Operation, Roadmap};
 use serde_json::{Value, json};
 use std::{
@@ -27,6 +27,12 @@ mod auth;
 )]
 mod secrets;
 
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Completion adapters remain binary-internal."
+)]
+mod completion;
+
 #[derive(Parser)]
 #[command(
     version,
@@ -45,6 +51,12 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Print an offline shell completion script for the implemented commands
+    Completion {
+        /// Shell that will load the generated script
+        #[arg(value_enum)]
+        shell: completion::Shell,
+    },
     /// Sign in to a company's Google IAP protected app using your browser
     Login(auth::Login),
     /// Verify your saved identity against the selected app
@@ -161,6 +173,9 @@ impl From<(Value, String)> for CommandOutput {
 
 fn run(cli: &Cli, catalog: &Catalog, roadmap: &Roadmap) -> Result<CommandOutput, Failure> {
     match &cli.command {
+        Command::Completion { shell } => {
+            completion::generate(*shell, Cli::command()).map(CommandOutput::from)
+        }
         Command::App {
             command: AppCommand::Secrets { command },
         } => secrets::run(command).map(CommandOutput::from),
@@ -325,12 +340,18 @@ fn main() -> ExitCode {
         }
     };
     let command = match cli.command {
+        Command::Completion { .. } => "completion",
         Command::Login(_) => "login",
         Command::Whoami(_) => "whoami",
         Command::Logout(_) => "logout",
         Command::Openapi(_) => "openapi",
         Command::Call(_) => "call",
-        Command::App { .. } => "app owners",
+        Command::App {
+            command: AppCommand::Secrets { .. },
+        } => "app secrets",
+        Command::App {
+            command: AppCommand::Owners { .. },
+        } => "app owners",
         Command::Catalog { .. } => "catalog",
         Command::Roadmap { .. } => "roadmap",
     };
@@ -367,5 +388,15 @@ fn main() -> ExitCode {
             }
         }
         Err(failure) => emit_failure(command, &failure, cli.json),
+    }
+}
+
+#[cfg(test)]
+mod parser_tests {
+    use super::*;
+
+    #[test]
+    fn complete_parser_has_unique_arguments_and_groups() {
+        Cli::command().debug_assert();
     }
 }

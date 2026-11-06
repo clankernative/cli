@@ -22,6 +22,8 @@ operations in the catalog are requirements, never executable capability claims.
 contract in docs/SECRETS.md. Rotation adds a stored version; it never activates
 bindings. Keep uncertain writes one-shot and secret bytes out of output.
 Keep JSON output versioned, errors structured, and diagnostics on stderr.
+Generate shell completion from the executable parser only. Completion must stay
+offline; historical inventory entries are never executable candidates or app IDs.
 
 `catalog/legacy-cli.json` is the public use-case inventory, including historical
 spellings, aliases, retired commands, public platform evidence, proposed

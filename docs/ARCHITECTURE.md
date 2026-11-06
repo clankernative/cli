@@ -40,6 +40,9 @@ v1 compatibility shim or maintain two recipe implementations.
 
 - `src/main.rs`: clap arguments, offline selection and output envelope.
 - `src/lib.rs`: typed catalog and roadmap decoding.
+- `src/completion.rs`: offline Bash/Zsh generation from the same Clap parser.
+  `clap_complete` stays on the compatible 4.5 series, with dynamic features off;
+  generation runs only in the executable adapter, outside the pure model library.
 - `src/owners.rs`: local owner arguments, bounded explicit platform CLI execution,
   and versioned result validation. The native platform owns all grants and writes.
 - `src/auth/api.rs`: admitted OpenAPI selection, authenticated app calls and explicit invocation reads.

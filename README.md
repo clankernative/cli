@@ -11,6 +11,8 @@ their desktop OAuth client; see [company login](docs/LOGIN.md).
 `call` invokes admitted app queries/commands, and `openapi` prints the current
 generated API contract; see [app calls](docs/API.md). `catalog` and `roadmap`
 remain offline.
+`completion bash` and `completion zsh` generate offline shell completion from
+the implemented parser; see [shell completion](docs/COMPLETION.md).
 `app secrets list/create/rotate/status` stores supplied values through an
 owner-authenticated app session; [secret setup and semantics](docs/SECRETS.md)
 describe the required platform deployment. Secret reveal/deletion, activation
@@ -27,10 +29,8 @@ and SQLite export remain planned.
 - [App owners](docs/OWNERS.md): local operator commands, permissions and receipts.
 - [Company login](docs/LOGIN.md): employee sign-in and required instance setup.
 - [App calls](docs/API.md): authenticated OpenAPI, queries, commands and receipts.
-`app secrets list/create/rotate/status` stores supplied values through an
-owner-authenticated app session; [secret setup and semantics](docs/SECRETS.md)
-describe the required platform deployment. Secret reveal/deletion, activation
-and SQLite export remain planned.
+- [App secrets](docs/SECRETS.md): owner-authenticated storage and rotation.
+- [Shell completion](docs/COMPLETION.md): offline Bash/Zsh generation.
 - [Machine-readable catalog](catalog/legacy-cli.json) and
   [phase definitions](catalog/roadmap.json): embedded in the binary.
 
@@ -41,6 +41,10 @@ metadata, company endpoints and operational implementation details are excluded.
 It does not claim live provider verification.
 
 ## Install
+
+The published native release is [v0.2.0](https://github.com/clankernative/cli/releases/tag/v0.2.0).
+Secret storage and shell completion on main are for the next release; build from
+source to use them until that release is published.
 
 See [verified native installers](docs/INSTALL.md) for macOS Apple Silicon and
 Linux x86_64 release archives, checksums, provenance and credential-store requirements.
