@@ -149,7 +149,8 @@ approvals in deny.toml; the general license allowlist remains unchanged.
 archives. Tags must match Cargo's version and be reachable from main. Archive
 builds use the repository-pinned compiler/lockfile, include dependency notices
 harvested with SHA-pinned cargo-about 0.9.3 and a source manifest, and create
-GitHub-hosted provenance attestations. Publishing requires both native builds and
+GitHub-hosted provenance attestations. Archive creation strips macOS metadata
+and checks the exact five-entry payload before attestation. Publishing requires both native builds and
 verifies their attestations. Installer and checksums receive their own attestations.
 The installer checks repository/workflow/tag provenance and checksum before
 installation, refuses existing destinations, and retains notices. One narrow
@@ -162,3 +163,9 @@ trusted maintainer can create `v*` refs; no actor bypasses tag update/deletion
 restrictions. These are independent of main's mandatory checks and PR policy.
 Read back actual repository settings before publishing; a configuration file
 alone is not enforcement.
+
+Every archive and installer includes a signed Sigstore verification bundle. The
+installer uses `gh attestation verify --bundle`, which avoids the GitHub API
+authentication required by ordinary online lookup. The unit fixture rejects a
+verifier call without a bundle; actual anonymous verification runs in the release
+workflow with an empty GitHub config and no token, before publication. No GitHub login is an employee installation prerequisite.

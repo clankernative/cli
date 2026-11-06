@@ -35,7 +35,7 @@ impl Fixture {
             ),
             (
                 "gh",
-                "echo attest >> \"$INSTALL_FIXTURE/network\"\nexit \"$INSTALL_ATTEST_EXIT\"",
+                "echo attest >> \"$INSTALL_FIXTURE/network\"\nbundle=no\nfor arg do if [ \"$arg\" = --bundle ]; then bundle=yes; fi; done\n[ \"$bundle\" = yes ] || exit 4\nexit \"$INSTALL_ATTEST_EXIT\"",
             ),
         ] {
             fixture.script(name, body);
@@ -62,6 +62,13 @@ impl Fixture {
                 .unwrap()
                 .success()
         );
+        fs::write(
+            fixture
+                .root
+                .join("assets/day2-cli-v0.2.0-aarch64-apple-darwin.tar.gz.sigstore.jsonl"),
+            "synthetic test bundle",
+        )
+        .unwrap();
         let digest = Command::new("shasum")
             .args(["-a", "256"])
             .arg(&archive)
@@ -138,7 +145,7 @@ fn installer_preserves_existing_executables_and_dangling_symlinks_before_network
 
 #[test]
 fn installer_requires_both_checksum_and_provenance_and_retains_notices() {
-    for failure in ["checksum", "attestation", "none"] {
+    for failure in ["checksum", "missing_bundle", "attestation", "none"] {
         let fixture = Fixture::new();
         if failure == "checksum" {
             fs::write(
@@ -147,6 +154,14 @@ fn installer_requires_both_checksum_and_provenance_and_retains_notices() {
                     "{}  day2-cli-v0.2.0-aarch64-apple-darwin.tar.gz\n",
                     "0".repeat(64)
                 ),
+            )
+            .unwrap();
+        }
+        if failure == "missing_bundle" {
+            fs::remove_file(
+                fixture
+                    .root
+                    .join("assets/day2-cli-v0.2.0-aarch64-apple-darwin.tar.gz.sigstore.jsonl"),
             )
             .unwrap();
         }
