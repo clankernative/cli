@@ -24,4 +24,10 @@ cp docs/INSTALL.md dist/day2-cli/README.md
 jq -n --arg version "$version" --arg commit "$GITHUB_SHA" --arg target "$target" --arg rust "$(rustc --version)" '{schema_version:1,version:$version,commit:$commit,target:$target,rust:$rust}' > dist/day2-cli/SOURCE.json
 target/release/day2 --version
 target/release/day2 call --help >/dev/null
-tar -czf "dist/day2-cli-v${version}-${target}.tar.gz" -C dist day2-cli
+# Exclude macOS resource forks/extended attributes from portable archives.
+archive="dist/day2-cli-v${version}-${target}.tar.gz"
+COPYFILE_DISABLE=1 tar -czf "$archive" -C dist day2-cli
+printf '%s\n' day2-cli/ day2-cli/README.md day2-cli/SOURCE.json day2-cli/THIRD_PARTY_LICENSES.txt day2-cli/day2 | LC_ALL=C sort > dist/expected-payload.list
+tar -tzf "$archive" > dist/unsorted-payload.list
+LC_ALL=C sort dist/unsorted-payload.list > dist/actual-payload.list
+cmp dist/expected-payload.list dist/actual-payload.list

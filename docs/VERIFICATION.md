@@ -149,7 +149,8 @@ approvals in deny.toml; the general license allowlist remains unchanged.
 archives. Tags must match Cargo's version and be reachable from main. Archive
 builds use the repository-pinned compiler/lockfile, include dependency notices
 harvested with SHA-pinned cargo-about 0.9.3 and a source manifest, and create
-GitHub-hosted provenance attestations. Publishing requires both native builds and
+GitHub-hosted provenance attestations. Archive creation strips macOS metadata
+and checks the exact five-entry payload before attestation. Publishing requires both native builds and
 verifies their attestations. Installer and checksums receive their own attestations.
 The installer checks repository/workflow/tag provenance and checksum before
 installation, refuses existing destinations, and retains notices. One narrow
