@@ -47,13 +47,21 @@ jobs:
           TARGET: ${{ matrix.target }}
           GH_TOKEN: ${{ github.token }}
       - name: Attest release archives
+        id: archive_attestation
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: dist/*.tar.gz
+      - name: Include the signed offline verification bundle
+        env:
+          BUNDLE_PATH: ${{ steps.archive_attestation.outputs.bundle-path }}
+          TARGET: ${{ matrix.target }}
+        run: cp "$BUNDLE_PATH" "dist/day2-cli-${GITHUB_REF_NAME}-${TARGET}.tar.gz.sigstore.jsonl"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-${{ matrix.target }}
-          path: dist/*.tar.gz
+          path: |
+            dist/*.tar.gz
+            dist/*.sigstore.jsonl
           if-no-files-found: error
           retention-days: 7
 
@@ -80,23 +88,39 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           test "$(find dist -maxdepth 1 -name '*.tar.gz' | wc -l)" -eq 2
+          test "$(find dist -maxdepth 1 -name '*.sigstore.jsonl' | wc -l)" -eq 2
           test -f "dist/day2-cli-${GITHUB_REF_NAME}-aarch64-apple-darwin.tar.gz"
           test -f "dist/day2-cli-${GITHUB_REF_NAME}-x86_64-unknown-linux-gnu.tar.gz"
           for archive in dist/*.tar.gz; do
-            gh attestation verify "$archive" --repo "$GITHUB_REPOSITORY" --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref "$GITHUB_REF" --deny-self-hosted-runners
+            gh attestation verify "$archive" --bundle "$archive.sigstore.jsonl" --repo "$GITHUB_REPOSITORY" --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref "$GITHUB_REF" --deny-self-hosted-runners
           done
           cp install.sh dist/install.sh
           cd dist
-          sha256sum ./*.tar.gz install.sh | sed 's#  ./#  #' > SHA256SUMS
+          sha256sum ./*.tar.gz ./*.sigstore.jsonl install.sh | sed 's#  ./#  #' > SHA256SUMS
       - name: Attest installer and checksums
+        id: installer_attestation
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: |
             dist/install.sh
             dist/SHA256SUMS
+      - name: Include anonymous installer verification
+        env:
+          BUNDLE_PATH: ${{ steps.installer_attestation.outputs.bundle-path }}
+        run: cp "$BUNDLE_PATH" dist/install.sh.sigstore.jsonl
+      - name: Qualify verification without a GitHub account
+        run: |
+          anonymous_config=$(mktemp -d)
+          export GH_CONFIG_DIR="$anonymous_config"
+          unset GH_TOKEN GITHUB_TOKEN
+          for archive in dist/*.tar.gz; do
+            gh attestation verify "$archive" --bundle "$archive.sigstore.jsonl" --repo "$GITHUB_REPOSITORY" --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref "$GITHUB_REF" --deny-self-hosted-runners
+          done
+          gh attestation verify dist/install.sh --bundle dist/install.sh.sigstore.jsonl --repo "$GITHUB_REPOSITORY" --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref "$GITHUB_REF" --deny-self-hosted-runners
+          gh attestation verify dist/SHA256SUMS --bundle dist/install.sh.sigstore.jsonl --repo "$GITHUB_REPOSITORY" --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref "$GITHUB_REF" --deny-self-hosted-runners
       - name: Publish verified employee CLI
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/*.tar.gz dist/install.sh dist/SHA256SUMS --repo "$GITHUB_REPOSITORY" --verify-tag --draft --title "Day 2 CLI $GITHUB_REF_NAME" --notes-file docs/RELEASE-NOTES.md
+          gh release create "$GITHUB_REF_NAME" dist/*.tar.gz dist/*.sigstore.jsonl dist/install.sh dist/SHA256SUMS --repo "$GITHUB_REPOSITORY" --verify-tag --draft --title "Day 2 CLI $GITHUB_REF_NAME" --notes-file docs/RELEASE-NOTES.md
           gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false
