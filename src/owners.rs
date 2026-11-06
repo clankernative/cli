@@ -44,6 +44,12 @@ enum Permission {
     #[value(name = "secrets.read")]
     #[serde(rename = "secrets.read")]
     SecretsRead,
+    #[value(name = "secrets.create")]
+    #[serde(rename = "secrets.create")]
+    SecretsCreate,
+    #[value(name = "secrets.rotate")]
+    #[serde(rename = "secrets.rotate")]
+    SecretsRotate,
     #[value(name = "sqlite.download")]
     #[serde(rename = "sqlite.download")]
     SqliteDownload,
@@ -116,13 +122,13 @@ fn protocol_error() -> Failure {
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-struct Stamp {
-    epoch: String,
-    revision: u64,
+pub(super) struct Stamp {
+    pub(super) epoch: String,
+    pub(super) revision: u64,
 }
 
 impl Stamp {
-    fn valid(&self) -> bool {
+    pub(super) fn valid(&self) -> bool {
         self.epoch.strip_prefix("sha256:").is_some_and(|value| {
             value.len() == 64
                 && value
@@ -467,8 +473,8 @@ fn validate(
                     .chain(&result.desired_owners)
                     .all(|owner| label(owner))
                 || result.desired_matches_active != (result.owners == result.desired_owners)
-                || result.permissions.len() != 4
-                || permissions.len() != 4
+                || result.permissions.len() != 6
+                || permissions.len() != 6
             {
                 return Err(protocol_error());
             }
@@ -687,7 +693,7 @@ mod tests {
         let (_, app, action, input) = request(&list).unwrap();
         let mut result = response(
             "list",
-            &json!({"stamp":stamp(7),"enabled":true,"owners":["owner"],"desired_owners":[],"desired_matches_active":false,"permissions":["audit.read","secrets.list","secrets.read","sqlite.download"]}),
+            &json!({"stamp":stamp(7),"enabled":true,"owners":["owner"],"desired_owners":[],"desired_matches_active":false,"permissions":["audit.read","secrets.list","secrets.read","secrets.create","secrets.rotate","sqlite.download"]}),
         );
         assert!(
             validate(

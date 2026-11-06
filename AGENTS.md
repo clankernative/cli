@@ -18,6 +18,9 @@ the documented platform CLI contract. Auth uses company discovery and the existi
 IAP/app-session channel; it does not provision instance setup or establish live
 qualification. Other planned
 operations in the catalog are requirements, never executable capability claims.
+`app secrets list/create/rotate/status` uses the authenticated app-session HTTP
+contract in docs/SECRETS.md. Rotation adds a stored version; it never activates
+bindings. Keep uncertain writes one-shot and secret bytes out of output.
 Keep JSON output versioned, errors structured, and diagnostics on stderr.
 
 `catalog/legacy-cli.json` is the public use-case inventory, including historical

@@ -8,11 +8,15 @@ use std::{io::IsTerminal as _, time::Duration};
 use super::Failure;
 
 mod api;
+mod app_client;
 mod browser;
 mod http;
 mod lock;
 mod oidc;
 mod store;
+pub(super) use app_client::Client as AppClient;
+#[cfg(test)]
+pub(super) use app_client::testing as app_test;
 
 #[cfg(test)]
 mod tests;
@@ -35,7 +39,7 @@ pub(super) struct Login {
     timeout: u64,
 }
 
-#[derive(Args)]
+#[derive(Args, Default)]
 pub(super) struct Context {
     /// HTTPS company app origin; defaults to the most recent successful login
     #[arg(long)]
@@ -423,6 +427,15 @@ fn identify(
     origin: &Origin,
     now: u64,
 ) -> Result<Saved> {
+    Ok(identify_session(transport, store, origin, now)?.0)
+}
+
+fn identify_session(
+    transport: &impl http::Transport,
+    store: &impl store::Store,
+    origin: &Origin,
+    now: u64,
+) -> Result<(Saved, http::Session)> {
     let mut saved = load(store, origin)?;
     // Revalidate the company binding before sending any credential to its app.
     if discover(transport, origin)? != saved.binding {
@@ -441,9 +454,9 @@ fn identify(
         saved.expires_at = refreshed.claims.exp;
         persist(store, origin, &saved)?;
     }
-    session(transport, origin, &mut saved)?;
+    let current = session(transport, origin, &mut saved)?;
     persist(store, origin, &saved)?;
-    Ok(saved)
+    Ok((saved, current))
 }
 
 pub(super) fn whoami(context: &Context) -> Result<(Value, String)> {

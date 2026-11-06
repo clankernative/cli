@@ -60,7 +60,17 @@ fn catalog_keeps_aliases_and_retirement_distinct() {
         .collect();
     assert_eq!(
         implemented,
-        ["login", "whoami", "call", "openapi", "logout"]
+        [
+            "login",
+            "whoami",
+            "call",
+            "openapi",
+            "secrets list",
+            "secrets add",
+            "secrets update",
+            "secrets status",
+            "logout"
+        ]
     );
 }
 

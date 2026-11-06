@@ -22,14 +22,14 @@ impl BodyLimit {
 pub(super) struct Request {
     pub(super) url: String,
     pub(super) headers: Vec<(String, String)>,
-    body: Option<String>,
+    body: Option<Secret>,
     pub(super) response_limit: BodyLimit,
 }
 
 impl Request {
     #[cfg(test)]
     pub(super) fn body(&self) -> Option<&str> {
-        self.body.as_deref()
+        self.body.as_ref().map(|body| body.0.as_str())
     }
     pub(super) fn get(url: String) -> Self {
         Self {
@@ -53,7 +53,7 @@ impl Request {
                 ),
                 ("Accept".into(), "application/json".into()),
             ],
-            body: Some(body),
+            body: Some(Secret(body)),
             response_limit: BodyLimit::Auth,
         }
     }
@@ -65,7 +65,7 @@ impl Request {
                 ("Accept".into(), "application/json".into()),
                 ("Content-Type".into(), "application/json".into()),
             ],
-            body: Some(body),
+            body: Some(Secret(body)),
             response_limit: BodyLimit::Api,
         }
     }
@@ -454,7 +454,7 @@ impl Transport for Native {
             for (name, value) in &request.headers {
                 builder = builder.header(name, value);
             }
-            builder.send(body).map_err(|_| failure())?
+            builder.send(body.0.as_str()).map_err(|_| failure())?
         } else {
             let mut builder = self.0.get(&request.url);
             for (name, value) in &request.headers {

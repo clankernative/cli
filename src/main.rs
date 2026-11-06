@@ -21,6 +21,11 @@ mod owners;
     reason = "Keep authentication APIs binary-internal, as required by unreachable_pub."
 )]
 mod auth;
+#[expect(
+    clippy::redundant_pub_crate,
+    reason = "Secret command adapters remain binary-internal."
+)]
+mod secrets;
 
 #[derive(Parser)]
 #[command(
@@ -28,7 +33,7 @@ mod auth;
     about = "Day 2 CLI — company login, app ownership and command inventory"
 )]
 #[command(
-    after_help = "Login requires company discovery and an IAP-allowlisted desktop OAuth client; see docs/LOGIN.md.\nApp owner commands require an explicitly selected local platform CLI.\nSecret values and SQLite export are not implemented.\nHelp and version use text output; --json/--agent applies to command results and errors."
+    after_help = "Login requires company discovery and an IAP-allowlisted desktop OAuth client; see docs/LOGIN.md.\nApp owner commands require an explicitly selected local platform CLI.\nApp secrets list/create/rotate use authenticated app sessions. Secret reveal, deletion and SQLite export are not implemented.\nHelp and version use text output; --json/--agent applies to command results and errors."
 )]
 struct Cli {
     /// Emit one versioned JSON result (also --agent)
@@ -72,6 +77,11 @@ enum Command {
 
 #[derive(Subcommand)]
 enum AppCommand {
+    /// Manage secret values in this app's approved provider namespace
+    Secrets {
+        #[command(subcommand)]
+        command: secrets::Command,
+    },
     /// Inspect or change active app owners as a trusted local operator
     Owners {
         #[command(subcommand)]
@@ -151,6 +161,9 @@ impl From<(Value, String)> for CommandOutput {
 
 fn run(cli: &Cli, catalog: &Catalog, roadmap: &Roadmap) -> Result<CommandOutput, Failure> {
     match &cli.command {
+        Command::App {
+            command: AppCommand::Secrets { command },
+        } => secrets::run(command).map(CommandOutput::from),
         Command::Login(options) => auth::login(options, cli.json).map(CommandOutput::from),
         Command::Whoami(context) => auth::whoami(context).map(CommandOutput::from),
         Command::Logout(context) => auth::logout(context).map(CommandOutput::from),

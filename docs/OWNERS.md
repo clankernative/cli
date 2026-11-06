@@ -26,8 +26,8 @@ day2 app owners check reports alice@example.com --permission secrets.read --inst
 
 `check` is a local operator diagnostic, not login as the named actor. It returns
 exit 3 when denied and performs no secret read or snapshot export. The role's
-permission names are `audit.read`, `secrets.list`, `secrets.read` and
-`sqlite.download`. Audit already uses the shared guard. Future sensitive reads
+permission names are `audit.read`, `secrets.list`, `secrets.read`, `secrets.create`,
+`secrets.rotate` and `sqlite.download`. Audit and secret storage use the shared guard. Future sensitive reads
 must authenticate the actor and recheck current authority inside the actual
 protected transaction; a prior `check` response or stamp cannot authorize them.
 The future endpoint must separately bind the requested secret or snapshot to that
