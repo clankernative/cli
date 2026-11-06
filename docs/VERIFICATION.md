@@ -163,3 +163,9 @@ trusted maintainer can create `v*` refs; no actor bypasses tag update/deletion
 restrictions. These are independent of main's mandatory checks and PR policy.
 Read back actual repository settings before publishing; a configuration file
 alone is not enforcement.
+
+Every archive and installer includes a signed Sigstore verification bundle. The
+installer uses `gh attestation verify --bundle`, which avoids the GitHub API
+authentication required by ordinary online lookup. The unit fixture rejects a
+verifier call without a bundle; actual anonymous verification runs in the release
+workflow with an empty GitHub config and no token, before publication. No GitHub login is an employee installation prerequisite.

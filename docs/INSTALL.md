@@ -6,19 +6,22 @@ Windows, Intel macOS, Linux ARM64 and musl targets have no qualified archive.
 This does not install Platform's source-bound operator tools or Roc recipes.
 
 Install GitHub CLI (`gh`), curl, tar and a SHA-256 tool through your usual package
-manager. Download the installer from the exact release, verify its provenance,
+manager. A GitHub account or login is not required. Download the installer and
+its signed verification bundle from the exact release, verify its provenance,
 then run it:
 
 ```console
-gh release download v0.2.0 --repo clankernative/cli --pattern install.sh
-gh attestation verify install.sh --repo clankernative/cli --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref refs/tags/v0.2.0 --deny-self-hosted-runners
+curl --fail --location --proto '=https' --proto-redir '=https' https://github.com/clankernative/cli/releases/download/v0.2.0/install.sh -o install.sh
+curl --fail --location --proto '=https' --proto-redir '=https' https://github.com/clankernative/cli/releases/download/v0.2.0/install.sh.sigstore.jsonl -o install.sh.sigstore.jsonl
+gh attestation verify install.sh --bundle install.sh.sigstore.jsonl --repo clankernative/cli --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref refs/tags/v0.2.0 --deny-self-hosted-runners
 sh install.sh
 ```
 
 The installer verifies the target archive's SHA-256 and GitHub-hosted build
-provenance, bound to this repository, release workflow and exact tag, before
-installing executable bytes. It requires network access to GitHub; it does not
-need your company's credentials. It installs to `$HOME/.local/bin` and keeps the
+provenance using the attached signed bundle, bound to this repository, release
+workflow and exact tag, before installing executable bytes. It requires network
+access to download public assets and verification trust data; it does not need
+your company's credentials. It installs to `$HOME/.local/bin` and keeps the
 archive's dependency notices and source manifest beside the executable in a
 private `.day2-cli-vVERSION.*` directory. Add `$HOME/.local/bin` to PATH.
 
@@ -30,8 +33,9 @@ explicit path. Updates currently require an intentional reinstall; `day2 update`
 remains planned. Remove the installed `day2` hard link and its matching hidden
 bundle directory to uninstall; run `day2 logout` first to clear saved credentials.
 
-You can instead download your target's `.tar.gz`, `SHA256SUMS`, verify the archive
-with `gh attestation verify` using the same repository/workflow/tag arguments,
+You can instead download your target's `.tar.gz`, matching `.tar.gz.sigstore.jsonl`
+and `SHA256SUMS`, verify the archive with `gh attestation verify --bundle BUNDLE`
+using the same repository/workflow/tag arguments,
 verify its checksum, and extract the whole archive. Keep its notices with the
 executable. `SOURCE.json` records source commit, target and Rust compiler. Every
 release reruns the full reusable CI on the tagged inputs, checks main ancestry,

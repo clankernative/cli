@@ -33,6 +33,7 @@ work=$(mktemp -d "${TMPDIR:-/tmp}/day2-cli-install.XXXXXX")
 trap 'if [ "$installed" = no ] && [ -n "$bundle" ] && [ ! "$bundle/day2" -ef "$prefix/day2" ]; then rm -rf "$bundle"; fi; rm -rf "$work"' EXIT HUP INT TERM
 curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 120 "$base/$archive" -o "$work/$archive"
 curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 30 "$base/SHA256SUMS" -o "$work/SHA256SUMS"
+curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 30 --max-filesize 1048576 "$base/$archive.sigstore.jsonl" -o "$work/$archive.sigstore.jsonl"
 awk -v file="$archive" '$2 == file { print; count++ } END { if (count != 1) exit 1 }' "$work/SHA256SUMS" > "$work/selected.sha256"
 if command -v sha256sum >/dev/null 2>&1; then
   (cd "$work" && sha256sum --check selected.sha256)
@@ -40,7 +41,7 @@ else
   (cd "$work" && shasum -a 256 --check selected.sha256)
 fi
 # Bind provenance to this repository, workflow and immutable release tag.
-gh attestation verify "$work/$archive" --repo clankernative/cli --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref "refs/tags/v${version}" --deny-self-hosted-runners >/dev/null
+gh attestation verify "$work/$archive" --bundle "$work/$archive.sigstore.jsonl" --repo clankernative/cli --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref "refs/tags/v${version}" --deny-self-hosted-runners >/dev/null
 tar -xzf "$work/$archive" -C "$work" day2-cli/day2 day2-cli/THIRD_PARTY_LICENSES.txt day2-cli/SOURCE.json day2-cli/README.md
 for file in day2 THIRD_PARTY_LICENSES.txt SOURCE.json README.md; do
   [ -f "$work/day2-cli/$file" ] && [ ! -L "$work/day2-cli/$file" ] || exit 1
