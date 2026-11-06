@@ -10,7 +10,11 @@ catalogs, execution, authorization, admission and workflow evidence.
 The current platform CLI is Roc with a private Rust native host. Its documented
 contract explicitly calls the adjacent host protocol private. Owners now use the
 versioned `platform owners` command/result contract described in [OWNERS.md](OWNERS.md).
-Other operations still need their own reviewed integration surface. The CLI must not
+App secret metadata and storage use the versioned app-session HTTP contract in
+[SECRETS.md](SECRETS.md), reusing discovery, refresh and the OS credential store.
+The native auth facade holds the credential lock for a request, supplies cookie,
+CSRF and Origin, and never retries a secret mutation. Other operations still need
+their own reviewed integration surface. The CLI must not
 import private platform crates, discover a broker from an arbitrary PATH, or
 reimplement build/release/local-development recipes as Rust orchestration.
 

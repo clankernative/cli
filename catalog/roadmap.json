@@ -139,15 +139,15 @@
     {
       "id": "M5",
       "title": "Secret lifecycle and guarded recovery",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "M1",
         "M4",
         "M0.1"
       ],
       "deliverables": [
-        "Add metadata-only list/prepare/latest/status/wait and owned agent-guidance installation.",
-        "Add human-only hidden add/update entry through the approved material channel and versioned request receipts.",
+        "Implemented first slice: app secrets list/create/rotate/status over owner-authenticated app sessions; hosted company qualification remains required.",
+        "Rotation stores supplied bytes as a new version. Input is exact bounded stdin or file content; app activation, secret reveal/deletion and protected retirement remain separate work.",
         "Expose reconcile/retry/exact/transition/terminated recovery only where Day 2 has a reviewed equivalent."
       ],
       "platform_work": [
@@ -156,7 +156,7 @@
       ],
       "acceptance": [
         "No credential values enter argv, environment, agent JSON, receipts, logs, journal or generated source.",
-        "Hidden input cannot fall back to visible input; cancellation/EOF does not submit; multiline content is preserved.",
+        "No value flags or environment input; reject terminal stdin, empty/oversized values and malformed names. Preserve multiline bytes and trailing newlines.",
         "Wrong request/run/task/checkpoint, stale authority, redirects and ambiguous recovery responses are refused without automatic mutation retry.",
         "Accepted/queued/active/failed/unknown states remain distinct; an accepted mutation is not proof of runtime use."
       ]

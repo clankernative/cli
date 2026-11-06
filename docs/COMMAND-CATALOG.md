@@ -27,12 +27,12 @@ until live instance qualification; see [company login](LOGIN.md),
 | `app provision` | Request application provisioning through the selected control service. | `day2 app provision` | M4 |
 | `prototype new` | Create application source using a reviewed platform template. | `day2 app new` | M2 |
 | `prototype publish` | Submit reviewed application source through the platform delivery interface. | `day2 app publish` | M4 |
-| `secrets list` | List authorized application secret metadata. | `day2 secrets list` | M5 |
+| `secrets list` | List authorized application secret metadata. | `day2 app secrets list APP` | M5 |
 | `secrets prepare` | Prepare metadata for an explicitly authorized secret change. | `day2 secrets prepare add|update` | M5 |
-| `secrets add` | Request creation of an application secret through protected material entry. | `day2 secrets add` | M5 |
-| `secrets update` | Request an authorized application secret update. | `day2 secrets update` | M5 |
+| `secrets add` | Request creation of an application secret through protected material entry. | `day2 app secrets create APP NAME` | M5 |
+| `secrets update` | Request an authorized application secret update. | `day2 app secrets rotate APP NAME` | M5 |
 | `secrets latest` | Inspect the latest authorized secret-change request. | `day2 secrets latest` | M5 |
-| `secrets status` | Read the status of an authorized secret-change request. | `day2 secrets status REQUEST` | M5 |
+| `secrets status` | Read the status of an authorized secret-change request. | `day2 app secrets status APP REQUEST_ID` | M5 |
 | `secrets wait` | Wait for an authorized secret-change request within a fixed deadline. | `day2 secrets wait REQUEST` | M5 |
 | `secrets recover-exact` | Request an explicitly authorized recovery of a secret change. | `day2 secrets recover-exact REQUEST` | M5 |
 | `secrets recover-transition` | Request an explicitly authorized recovery of a secret transition. | `day2 secrets recover-transition REQUEST` | M5 |
@@ -63,3 +63,7 @@ summaries, safety requirements and public platform references. Public evidence
 pins a reviewed platform revision; it is not live integration qualification.
 Implementation requires the [verification contract](VERIFICATION.md), including
 negative tests at changed authorization, validation, redaction and retry boundaries.
+
+The first M5 slice implements `app secrets list/create/rotate/status` through
+owner-authenticated app sessions. Other secret successors remain planned. See
+[SECRETS.md](SECRETS.md) for setup, exact input and uncertain-outcome handling.

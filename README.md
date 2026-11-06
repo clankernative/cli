@@ -9,8 +9,12 @@ implement browser authentication for company-configured Google IAP apps, with
 credentials in the OS store. Companies must configure discovery and allowlist
 their desktop OAuth client; see [company login](docs/LOGIN.md).
 `call` invokes admitted app queries/commands, and `openapi` prints the current
-generated API contract; see [app calls](docs/API.md). `catalog` and `roadmap` remain offline. Secret values, SQLite export and other
-operational commands are planned.
+generated API contract; see [app calls](docs/API.md). `catalog` and `roadmap`
+remain offline.
+`app secrets list/create/rotate/status` stores supplied values through an
+owner-authenticated app session; [secret setup and semantics](docs/SECRETS.md)
+describe the required platform deployment. Secret reveal/deletion, activation
+and SQLite export remain planned.
 
 ## Start here
 
@@ -23,6 +27,10 @@ operational commands are planned.
 - [App owners](docs/OWNERS.md): local operator commands, permissions and receipts.
 - [Company login](docs/LOGIN.md): employee sign-in and required instance setup.
 - [App calls](docs/API.md): authenticated OpenAPI, queries, commands and receipts.
+`app secrets list/create/rotate/status` stores supplied values through an
+owner-authenticated app session; [secret setup and semantics](docs/SECRETS.md)
+describe the required platform deployment. Secret reveal/deletion, activation
+and SQLite export remain planned.
 - [Machine-readable catalog](catalog/legacy-cli.json) and
   [phase definitions](catalog/roadmap.json): embedded in the binary.
 

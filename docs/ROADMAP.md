@@ -12,6 +12,8 @@ A private macOS company canary has live auth and query evidence; Linux credentia
 storage has native Secret Service evidence. Each company and target still needs
 its own hosted qualification per [LOGIN.md](LOGIN.md) and [API.md](API.md).
 Verified employee CLI packaging is described in [INSTALL.md](INSTALL.md).
+M5's first `app secrets list/create/rotate/status` slice is implemented;
+activation, reveal, deletion and recovery remain open. See [SECRETS.md](SECRETS.md).
 Other operational successors remain planned. Dates and effort
 estimates are intentionally unset until the local integration contract and hosted
 service scope are known.
