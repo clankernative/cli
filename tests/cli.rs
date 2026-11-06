@@ -50,8 +50,33 @@ fn catalog_keeps_aliases_and_retirement_distinct() {
         operations
             .iter()
             .all(|op| op["implementation_status"] == "planned"
-                || op["implementation_status"] == "omitted")
+                || op["implementation_status"] == "omitted"
+                || op["implementation_status"] == "implemented_unqualified")
     );
+    let implemented: Vec<_> = operations
+        .iter()
+        .filter(|op| op["implementation_status"] == "implemented_unqualified")
+        .map(|op| op["legacy_command"].as_str().unwrap())
+        .collect();
+    assert_eq!(implemented, ["login", "whoami", "logout"]);
+}
+
+#[test]
+fn login_headless_is_structured_and_never_starts_browser_or_keychain() {
+    let output = day2(&[
+        "login",
+        "--instance",
+        "https://tools.company.example",
+        "--json",
+    ]);
+    let value = document(&output, 3);
+    assert_eq!(value["command"], "login");
+    assert_eq!(value["error"]["code"], "interactive_required");
+    let help = day2(&["--help"]);
+    let text = String::from_utf8_lossy(&help.stdout);
+    for command in ["login", "whoami", "logout"] {
+        assert!(text.contains(command));
+    }
 }
 
 #[test]

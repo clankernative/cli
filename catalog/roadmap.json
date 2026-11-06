@@ -44,18 +44,18 @@
     {
       "id": "M1",
       "title": "Context, identity and API access",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "M0"
       ],
       "deliverables": [
-        "Add explicit instance/environment/app context and exact-origin credential storage; no company defaults.",
-        "Implement local-session call/openapi first, then qualified hosted human login/whoami/logout and explicit edge-token export.",
+        "Implemented: exact app-origin/company/environment binding and OS credential storage, with no company defaults. Company-wide app context remains planned.",
+        "Implemented with local/mock evidence: Google IAP desktop browser login/whoami/logout, PKCE, signed ID tokens, refresh and app-session verification. Hosted instance qualification, local-session call/openapi and explicit token export remain required.",
         "Preserve raw HTTP output, bounded requests, body sources and exact idempotency keys; add generated shell completion and selected-context app cache."
       ],
       "platform_work": [
         "Review and establish a versioned standalone CLI integration contract; existing day2-host/workflow protocols are private.",
-        "Qualify hosted browser-session bootstrap and IAP client configuration; managed credential readiness is a separate installation gate."
+        "Publish exact-origin public discovery and allowlist a company desktop OAuth client; qualify live IAP/session bootstrap and native OS credential stores. Managed credential readiness is a separate installation gate."
       ],
       "acceptance": [
         "A local Reports query and idempotent command succeed via the real generated API; a 202 receipt can be polled.",

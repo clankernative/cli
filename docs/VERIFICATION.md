@@ -65,7 +65,7 @@ There are no path filters, production credentials or privileged PR triggers.
 
 | Gate | Evidence |
 | --- | --- |
-| `check (ubuntu-24.04)` / `check (macos-14)` | Formatting, strict lint, library boundary, process/compiler tests, doctests, rustdoc and release compilation. Verification must not change tracked files. |
+| `check (ubuntu-24.04)` / `check (macos-15)` | Formatting, strict lint, library boundary, process/compiler tests, doctests, rustdoc and release compilation. Verification must not change tracked files. |
 | `secrets` | Gitleaks scans current files and all fetched Git history with full redaction and no repository exclusions. |
 | `dependencies` | Cargo audit denies advisory warnings; cargo-deny rejects duplicate versions, wildcard requirements, unapproved registries/Git sources and third-party licenses outside the explicit allowlist. |
 | `workflows` | Actionlint validates workflows and shell steps; offline pedantic Zizmor checks workflow security. |
@@ -115,3 +115,25 @@ gh api --method PUT repos/clankernative/cli/branches/main/protection --input .gi
 Verify the active server settings rather than treating this file as enforcement.
 Report the checks actually completed, the inspected commit and any limitations.
 Local or mocked checks never establish live provider or Platform qualification.
+
+## Login adapter review
+
+`docs/LOGIN.md` defines the implemented human auth contract and the separate live
+instance gate. A local HTTPS server with ephemeral certificates exercises the
+production TLS provider, certificate/hostname verification, redirect refusal and
+response-byte bounds; fragmented loopback requests cover accepted-socket mode.
+Tests cover the required Google callback issuer (including missing, duplicate,
+wrong and malformed issuers), ephemeral RSA-signed ID tokens (including wrong
+issuer/audience/domain/nonce/expiry/signature), PKCE, a real loopback callback,
+instance binding changes, cookie/CSRF validation, bounded malformed responses,
+redaction, refresh rotation and local-first logout. Headless process tests prove
+login refuses before browser/credential-store work. Provider/app/store mocks do
+not qualify native credential storage or hosted Google/IAP access.
+
+TLS uses Rustls with one AWS-LC provider. Linux Secret Service uses the native
+D-Bus adapter with encrypted communication and vendored libdbus; macOS uses
+Keychain Services. The lockfile keeps one compatible procedural-macro generation
+across the graph, including Clap 4.5.60 and Serde 1.0.228. Review upgrades together;
+the duplicate-version ban remains enabled with no package skips. The pinned TLS
+packages' ISC/BSD and Mozilla root data's CDLA licenses have exact-version
+approvals in deny.toml; the general license allowlist remains unchanged.

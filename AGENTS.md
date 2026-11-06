@@ -12,8 +12,11 @@ and output APIs by compiler-resolved identity. Keep I/O in reviewed executable
 adapters. A new dependency or macro can cross this boundary and requires review;
 the compiler checks are not a hostile-code sandbox. Keep unsafe Rust forbidden.
 
-The executable implements offline `catalog` and `roadmap` and local `app owners`
-list/check/add/remove through the documented platform CLI contract. Other planned
+The executable implements offline `catalog` and `roadmap`, human `login`/`whoami`/
+`logout` per docs/LOGIN.md, and local `app owners` list/check/add/remove through
+the documented platform CLI contract. Auth uses company discovery and the existing
+IAP/app-session channel; it does not provision instance setup or establish live
+qualification. Other planned
 operations in the catalog are requirements, never executable capability claims.
 Keep JSON output versioned, errors structured, and diagnostics on stderr.
 
@@ -39,3 +42,9 @@ instance configuration. No source-host or provider is a global CLI prerequisite.
 Preserve the distinctions between human sessions, managed API credentials and
 operator authority. Do not silently import v1 credentials, add v1 compatibility
 shims, or retry writes whose outcome is unknown.
+
+Keep auth credentials in the OS store, scoped to the exact app origin and company
+binding. Fixed Google endpoints, PKCE/state/nonce, signed ID-token validation,
+current app identity checks, bounded HTTPS and redirect refusal are enforcement
+boundaries. Do not add plaintext, environment-token, browser-cookie import or
+operator-identity fallbacks. Local/mocked verification never proves hosted login.
