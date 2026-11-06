@@ -11,7 +11,7 @@ their desktop OAuth client; see [company login](docs/LOGIN.md).
 `call` invokes admitted app queries/commands, and `openapi` prints the current
 generated API contract; see [app calls](docs/API.md). `catalog` and `roadmap`
 remain offline.
-`completion bash` and `completion zsh` generate offline shell completion from
+`completion bash`, `completion zsh` and `completion fish` generate offline shell completion from
 the implemented parser; see [shell completion](docs/COMPLETION.md).
 `app secrets list/create/rotate/status` stores supplied values through an
 owner-authenticated app session; [secret setup and semantics](docs/SECRETS.md)
@@ -30,7 +30,7 @@ and SQLite export remain planned.
 - [Company login](docs/LOGIN.md): employee sign-in and required instance setup.
 - [App calls](docs/API.md): authenticated OpenAPI, queries, commands and receipts.
 - [App secrets](docs/SECRETS.md): owner-authenticated storage and rotation.
-- [Shell completion](docs/COMPLETION.md): offline Bash/Zsh generation.
+- [Shell completion](docs/COMPLETION.md): offline Bash/Zsh/Fish generation.
 - [Machine-readable catalog](catalog/legacy-cli.json) and
   [phase definitions](catalog/roadmap.json): embedded in the binary.
 

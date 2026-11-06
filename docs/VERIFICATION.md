@@ -121,10 +121,11 @@ Verify the active server settings rather than treating this file as enforcement.
 Report the checks actually completed, the inspected commit and any limitations.
 Local or mocked checks never establish live provider or Platform qualification.
 
-Completion process tests parse the generated script in Bash and Zsh, exercise
-an actual Bash completion request, and require implemented app subcommands while
-rejecting historical placeholders. Linux CI installs Zsh before these tests;
-both native jobs run the same cases. Generation is also exercised with an
+Completion process tests parse the generated script in Bash, Zsh and Fish,
+exercise actual Bash and Fish completion requests, and require implemented app
+subcommands while rejecting historical placeholders. Linux CI installs Zsh and
+Fish before these tests; macOS CI installs Fish. Both native jobs run the same
+cases. Generation is also exercised with an
 unavailable Secret Service address. No completion test signs in or grants access.
 
 ## Login adapter review

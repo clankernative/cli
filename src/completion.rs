@@ -8,12 +8,14 @@ use serde_json::{Value, json};
 pub(super) enum Shell {
     Bash,
     Zsh,
+    Fish,
 }
 
 pub(super) fn generate(shell: Shell, mut command: Command) -> Result<(Value, String), Failure> {
     let (name, generator) = match shell {
         Shell::Bash => ("bash", clap_complete::Shell::Bash),
         Shell::Zsh => ("zsh", clap_complete::Shell::Zsh),
+        Shell::Fish => ("fish", clap_complete::Shell::Fish),
     };
     // A Vec writer cannot return an I/O error. Generation never loads credentials,
     // starts a process, reads a live catalog or consults a selected app instance.
