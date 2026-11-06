@@ -1,0 +1,9 @@
+# Dependency notices accompany every binary archive. The application itself is
+# unpublished and has no distribution license declaration; do not assign one here.
+accepted = ["Apache-2.0", "MIT", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unicode-3.0", "Zlib", "CDLA-Permissive-2.0"]
+ignore-build-dependencies = true
+ignore-dev-dependencies = true
+
+
+[private]
+ignore = true

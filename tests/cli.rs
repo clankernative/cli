@@ -58,7 +58,10 @@ fn catalog_keeps_aliases_and_retirement_distinct() {
         .filter(|op| op["implementation_status"] == "implemented_unqualified")
         .map(|op| op["legacy_command"].as_str().unwrap())
         .collect();
-    assert_eq!(implemented, ["login", "whoami", "logout"]);
+    assert_eq!(
+        implemented,
+        ["login", "whoami", "call", "openapi", "logout"]
+    );
 }
 
 #[test]
@@ -208,4 +211,37 @@ fn owner_commands_require_explicit_local_context_before_any_launch() {
         "--json",
     ]);
     assert_eq!(document(&output, 2)["error"]["code"], "invalid_arguments");
+}
+
+#[test]
+fn api_parser_refuses_arbitrary_destinations_and_ambiguous_receipt_flags() {
+    for args in [
+        vec!["call", "https://other.company.example/api/test", "--json"],
+        vec!["call", "reports.list?injected=yes", "--json"],
+        vec![
+            "call",
+            "reports.create",
+            "--idempotency-key",
+            "bad key",
+            "--json",
+        ],
+    ] {
+        let value = document(&day2(&args), 3);
+        assert_eq!(value["error"]["code"], "invalid_call");
+    }
+    for args in [
+        vec!["call", "--json"],
+        vec!["call", "reports.list", "--invocation", "123", "--json"],
+        vec![
+            "call",
+            "--invocation",
+            "123",
+            "--input-file",
+            "unread.json",
+            "--json",
+        ],
+    ] {
+        let value = document(&day2(&args), 2);
+        assert_eq!(value["error"]["code"], "invalid_arguments");
+    }
 }

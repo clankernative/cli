@@ -46,6 +46,10 @@ enum Command {
     Whoami(auth::Context),
     /// Remove local credentials and end the saved app session
     Logout(auth::Context),
+    /// Print the authenticated app's generated `OpenAPI` JSON, without an envelope
+    Openapi(auth::Context),
+    /// Call an admitted app operation or read an invocation; print raw JSON
+    Call(auth::Call),
     /// Manage an app through the selected platform installation
     App {
         #[command(subcommand)]
@@ -134,18 +138,37 @@ fn catalog_text(operations: &[&Operation], detail: bool) -> String {
     output
 }
 
-fn run(cli: &Cli, catalog: &Catalog, roadmap: &Roadmap) -> Result<(Value, String), Failure> {
+enum CommandOutput {
+    Formatted(Value, String),
+    Raw(String, u8),
+}
+
+impl From<(Value, String)> for CommandOutput {
+    fn from((value, text): (Value, String)) -> Self {
+        Self::Formatted(value, text)
+    }
+}
+
+fn run(cli: &Cli, catalog: &Catalog, roadmap: &Roadmap) -> Result<CommandOutput, Failure> {
     match &cli.command {
-        Command::Login(options) => auth::login(options, cli.json),
-        Command::Whoami(context) => auth::whoami(context),
-        Command::Logout(context) => auth::logout(context),
+        Command::Login(options) => auth::login(options, cli.json).map(CommandOutput::from),
+        Command::Whoami(context) => auth::whoami(context).map(CommandOutput::from),
+        Command::Logout(context) => auth::logout(context).map(CommandOutput::from),
+        Command::Openapi(context) => {
+            auth::openapi(context).map(|output| CommandOutput::Raw(output.body, output.exit_code))
+        }
+        Command::Call(options) => {
+            auth::call(options).map(|output| CommandOutput::Raw(output.body, output.exit_code))
+        }
         Command::App {
             command: AppCommand::Owners { command },
-        } => owners::run(command).map_err(|failure| Failure {
-            exit_code: failure.exit_code,
-            code: failure.code,
-            message: failure.message,
-        }),
+        } => owners::run(command)
+            .map(CommandOutput::from)
+            .map_err(|failure| Failure {
+                exit_code: failure.exit_code,
+                code: failure.code,
+                message: failure.message,
+            }),
         Command::Catalog { command, phase } => {
             let selected_phase = phase
                 .as_deref()
@@ -170,7 +193,7 @@ fn run(cli: &Cli, catalog: &Catalog, roadmap: &Roadmap) -> Result<(Value, String
                 ));
             }
             let text = catalog_text(&operations, selected_command.is_some());
-            Ok((
+            Ok(CommandOutput::Formatted(
                 json!({
                     "audited_on": catalog.audited_on,
                     "platform_source": catalog.platform_source,
@@ -217,7 +240,7 @@ fn run(cli: &Cli, catalog: &Catalog, roadmap: &Roadmap) -> Result<(Value, String
                 }
                 text.push('\n');
             }
-            Ok((json!({ "phases": phases }), text))
+            Ok(CommandOutput::Formatted(json!({ "phases": phases }), text))
         }
     }
 }
@@ -292,6 +315,8 @@ fn main() -> ExitCode {
         Command::Login(_) => "login",
         Command::Whoami(_) => "whoami",
         Command::Logout(_) => "logout",
+        Command::Openapi(_) => "openapi",
+        Command::Call(_) => "call",
         Command::App { .. } => "app owners",
         Command::Catalog { .. } => "catalog",
         Command::Roadmap { .. } => "roadmap",
@@ -313,7 +338,15 @@ fn main() -> ExitCode {
         }
     };
     match run(&cli, &catalog, &roadmap) {
-        Ok((result, text)) => {
+        Ok(CommandOutput::Raw(body, status)) => {
+            let written = write_output(&body);
+            if written == ExitCode::SUCCESS {
+                ExitCode::from(status)
+            } else {
+                written
+            }
+        }
+        Ok(CommandOutput::Formatted(result, text)) => {
             if cli.json {
                 write_output(&format!("{}\n", envelope(command, Some(&result), None)))
             } else {

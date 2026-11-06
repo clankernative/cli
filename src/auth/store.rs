@@ -64,3 +64,90 @@ impl Store for Native {
         }
     }
 }
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+    use std::process::Command;
+
+    // This test uses real Secret Service over encrypted D-Bus. Run only in an
+    // explicitly prepared disposable login session; never replace a user's store.
+    #[test]
+    #[ignore = "requires a disposable unlocked Linux Secret Service session"]
+    fn native_secret_service_roundtrip() {
+        let key = format!("qualification-{}", std::process::id());
+        let store = Native;
+        let child = |mode: &str| {
+            let output = Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--ignored",
+                    "--exact",
+                    "auth::store::tests::native_probe_process",
+                    "--test-threads=1",
+                ])
+                .env("DAY2_CLI_STORE_PROBE", mode)
+                .env("DAY2_CLI_STORE_KEY", &key)
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "native credential subprocess failed"
+            );
+        };
+        assert!(store.get(&key).unwrap().is_none());
+        store.set(&key, "synthetic-native-roundtrip").unwrap();
+        child("read-and-rotate");
+        assert_eq!(store.get(&key).unwrap().unwrap(), "x".repeat(65_536));
+        child("delete");
+        assert!(store.get(&key).unwrap().is_none());
+        store.delete(&key).unwrap();
+        let unavailable = Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--ignored",
+                "--exact",
+                "auth::store::tests::native_probe_process",
+                "--test-threads=1",
+            ])
+            .env("DAY2_CLI_STORE_PROBE", "unavailable")
+            .env("DAY2_CLI_STORE_KEY", &key)
+            .env(
+                "DBUS_SESSION_BUS_ADDRESS",
+                "unix:path=/nonexistent-day2-qualification-bus",
+            )
+            .output()
+            .unwrap();
+        assert!(
+            unavailable.status.success(),
+            "unavailable store must fail closed"
+        );
+    }
+
+    #[test]
+    #[ignore = "subprocess for the native Secret Service qualification"]
+    fn native_probe_process() {
+        let Ok(mode) = std::env::var("DAY2_CLI_STORE_PROBE") else {
+            return;
+        };
+        let key = std::env::var("DAY2_CLI_STORE_KEY").unwrap();
+        let store = Native;
+        match mode.as_str() {
+            "read-and-rotate" => {
+                assert_eq!(
+                    store.get(&key).unwrap().unwrap(),
+                    "synthetic-native-roundtrip"
+                );
+                store.set(&key, &"x".repeat(65_536)).unwrap();
+            }
+            "delete" => {
+                assert_eq!(store.get(&key).unwrap().unwrap(), "x".repeat(65_536));
+                store.delete(&key).unwrap();
+            }
+            "unavailable" => {
+                assert!(
+                    matches!(store.get(&key), Err(error) if error.code == "credential_store_unavailable")
+                );
+            }
+            _ => panic!("unknown native credential test mode"),
+        }
+    }
+}

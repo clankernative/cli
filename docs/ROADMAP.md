@@ -7,9 +7,12 @@ not a line-for-line port or a v1 compatibility program.
 The inventory accounts for 41 legacy spellings. Local app-owner commands now
 implement the permission foundation for later secret values and snapshot export;
 they are new commands rather than additional historical v1 parser leaves.
-M0 and M0.1 are complete. M1's human login client is implemented with local/mock
-evidence; company discovery, IAP/OAuth setup and live qualification remain required
-per [LOGIN.md](LOGIN.md). Other operational successors are planned. Dates and effort
+M0 and M0.1 are complete. M1 includes human login and admitted app API calls.
+A private macOS company canary has live auth and query evidence; Linux credential
+storage has native Secret Service evidence. Each company and target still needs
+its own hosted qualification per [LOGIN.md](LOGIN.md) and [API.md](API.md).
+Verified employee CLI packaging is described in [INSTALL.md](INSTALL.md).
+Other operational successors remain planned. Dates and effort
 estimates are intentionally unset until the local integration contract and hosted
 service scope are known.
 

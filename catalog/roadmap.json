@@ -50,8 +50,8 @@
       ],
       "deliverables": [
         "Implemented: exact app-origin/company/environment binding and OS credential storage, with no company defaults. Company-wide app context remains planned.",
-        "Implemented with local/mock evidence: Google IAP desktop browser login/whoami/logout, PKCE, signed ID tokens, refresh and app-session verification. Hosted instance qualification, local-session call/openapi and explicit token export remain required.",
-        "Preserve raw HTTP output, bounded requests, body sources and exact idempotency keys; add generated shell completion and selected-context app cache."
+        "Implemented: Google IAP desktop browser login/whoami/logout, PKCE, signed ID tokens, refresh and app sessions. A private macOS company canary has live login/refresh/logout evidence; each installation and target still requires qualification. Explicit token export remains planned.",
+        "Implemented with local/mock evidence: admitted OpenAPI calls, raw bounded JSON, exact idempotency keys and invocation receipt reads. Live API qualification, generated completion and selected-context app cache remain required."
       ],
       "platform_work": [
         "Review and establish a versioned standalone CLI integration contract; existing day2-host/workflow protocols are private.",

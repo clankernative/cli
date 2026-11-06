@@ -5,10 +5,25 @@ use std::{collections::BTreeMap, time::Duration};
 
 use super::{MAX_DOCUMENT, Result, Secret, fail, invalid};
 
+pub(super) enum BodyLimit {
+    Auth,
+    Api,
+}
+
+impl BodyLimit {
+    const fn bytes(self) -> u64 {
+        match self {
+            Self::Auth => 65_536,
+            Self::Api => 1_048_576,
+        }
+    }
+}
+
 pub(super) struct Request {
     pub(super) url: String,
     pub(super) headers: Vec<(String, String)>,
     body: Option<String>,
+    pub(super) response_limit: BodyLimit,
 }
 
 impl Request {
@@ -21,6 +36,7 @@ impl Request {
             url,
             headers: vec![("Accept".into(), "application/json".into())],
             body: None,
+            response_limit: BodyLimit::Auth,
         }
     }
 
@@ -38,6 +54,19 @@ impl Request {
                 ("Accept".into(), "application/json".into()),
             ],
             body: Some(body),
+            response_limit: BodyLimit::Auth,
+        }
+    }
+
+    pub(super) fn json(url: String, body: String) -> Self {
+        Self {
+            url,
+            headers: vec![
+                ("Accept".into(), "application/json".into()),
+                ("Content-Type".into(), "application/json".into()),
+            ],
+            body: Some(body),
+            response_limit: BodyLimit::Api,
         }
     }
 
@@ -447,7 +476,7 @@ impl Transport for Native {
         let body = response
             .body_mut()
             .with_config()
-            .limit(65_536)
+            .limit(request.response_limit.bytes())
             .read_to_vec()
             .map_err(|_| failure())?;
         Ok(Response {

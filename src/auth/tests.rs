@@ -13,7 +13,7 @@ const COOKIE: &str = "__Host-day2_reports_aabb=synthetic-cookie-value";
 const REGISTRATION: &str = "synthetic-desktop-registration-value";
 
 #[derive(Default)]
-struct Memory(RefCell<BTreeMap<String, String>>);
+pub(super) struct Memory(RefCell<BTreeMap<String, String>>);
 
 impl Store for Memory {
     fn get(&self, key: &str) -> Result<Option<String>> {
@@ -30,9 +30,9 @@ impl Store for Memory {
 }
 
 #[derive(Default)]
-struct Mock {
-    requests: RefCell<Vec<Request>>,
-    responses: RefCell<VecDeque<Response>>,
+pub(super) struct Mock {
+    pub(super) requests: RefCell<Vec<Request>>,
+    pub(super) responses: RefCell<VecDeque<Response>>,
 }
 
 impl Transport for Mock {
@@ -42,7 +42,7 @@ impl Transport for Mock {
     }
 }
 
-fn response(value: &impl Serialize) -> Response {
+pub(super) fn response(value: &impl Serialize) -> Response {
     Response {
         status: 200,
         headers: vec![("content-type".into(), "application/json".into())],
@@ -67,7 +67,7 @@ pub(super) fn binding() -> Discovery {
     }
 }
 
-fn saved() -> Saved {
+pub(super) fn saved() -> Saved {
     Saved {
         schema_version: 1,
         binding: binding(),
@@ -80,7 +80,7 @@ fn saved() -> Saved {
     }
 }
 
-fn app_session() -> Response {
+pub(super) fn app_session() -> Response {
     let mut result = response(&json!({"actor":ACTOR,"csrf_token":"synthetic-csrf-token-value"}));
     result.headers.push((
         "set-cookie".into(),

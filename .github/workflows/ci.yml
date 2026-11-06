@@ -7,6 +7,7 @@ on:
   merge_group:
     types: [checks_requested]
   workflow_dispatch:
+  workflow_call:
   schedule:
     - cron: '23 9 * * 1'
 
@@ -32,7 +33,7 @@ jobs:
         os: [ubuntu-24.04, macos-15]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Install repository-pinned Rust toolchain
@@ -45,6 +46,12 @@ jobs:
           CLIPPY_CONF_DIR: ${{ github.workspace }}/architecture
           CARGO_TARGET_DIR: target/architecture
       - run: cargo test --locked --all-targets --all-features
+      - name: Qualify native Linux credential storage
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends gnome-keyring dbus
+          sh scripts/qualify-secret-service.sh
       - run: cargo test --locked --doc --all-features
       - run: cargo doc --locked --no-deps --all-features --document-private-items
       - run: cargo build --locked --release --all-targets --all-features
@@ -56,7 +63,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -74,7 +81,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Install repository-pinned Rust toolchain
@@ -97,7 +104,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - run: gh release download v1.7.12 --repo rhysd/actionlint --pattern actionlint_1.7.12_linux_amd64.tar.gz --dir /tmp/scanners
@@ -110,6 +117,7 @@ jobs:
         working-directory: /tmp/scanners
       - run: tar -xzf /tmp/scanners/actionlint_1.7.12_linux_amd64.tar.gz -C /tmp/scanners
       - run: tar -xzf /tmp/scanners/zizmor-x86_64-unknown-linux-gnu.tar.gz -C /tmp/scanners
+      - run: shellcheck install.sh scripts/*.sh
       - run: /tmp/scanners/actionlint -color
       - run: /tmp/scanners/zizmor --offline --no-progress --pedantic .github/workflows
 
