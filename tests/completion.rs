@@ -4,8 +4,8 @@ use std::io::Write as _;
 use std::process::{Command, Stdio};
 
 #[test]
-fn generated_scripts_parse_in_both_supported_shells() {
-    for shell in ["bash", "zsh"] {
+fn generated_scripts_parse_in_supported_shells() {
+    for shell in ["bash", "zsh", "fish"] {
         let output = Command::new(env!("CARGO_BIN_EXE_day2"))
             .args(["completion", shell])
             .env(
@@ -17,10 +17,10 @@ fn generated_scripts_parse_in_both_supported_shells() {
         assert!(output.status.success(), "{output:?}");
         assert!(output.stderr.is_empty(), "{output:?}");
         let mut parser = Command::new(shell)
-            .args(if shell == "zsh" {
-                &["-f", "-n"][..]
-            } else {
-                &["--noprofile", "--norc", "-n"][..]
+            .args(match shell {
+                "zsh" => &["-f", "-n"][..],
+                "fish" => &["--no-config", "--no-execute"][..],
+                _ => &["--noprofile", "--norc", "-n"][..],
             })
             .env_remove("BASH_ENV")
             .env_remove("ENV")
@@ -49,6 +49,64 @@ fn generated_scripts_parse_in_both_supported_shells() {
             value["result"]["script"],
             String::from_utf8(output.stdout).unwrap()
         );
+    }
+}
+
+#[test]
+fn fish_completes_nested_commands_without_configuration() {
+    let generated = Command::new(env!("CARGO_BIN_EXE_day2"))
+        .args(["completion", "fish"])
+        .env(
+            "DBUS_SESSION_BUS_ADDRESS",
+            "unix:path=/nonexistent-day2-completion-bus",
+        )
+        .output()
+        .unwrap();
+    assert!(generated.status.success(), "{generated:?}");
+    assert!(generated.stderr.is_empty(), "{generated:?}");
+    for (input, required, excluded) in [
+        (
+            "day2 app ",
+            &["owners", "secrets"][..],
+            &["prototype", "sqlite", "publish", "snapshot"][..],
+        ),
+        (
+            "day2 app secrets ",
+            &["list", "create", "rotate", "status"][..],
+            &["reveal", "delete", "activate"][..],
+        ),
+    ] {
+        let mut shell = Command::new("fish")
+            .args([
+                "--no-config",
+                "--command",
+                &format!("source -; complete --do-complete='{input}'"),
+            ])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        shell
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(&generated.stdout)
+            .unwrap();
+        let result = shell.wait_with_output().unwrap();
+        assert!(result.status.success(), "{input}: {result:?}");
+        assert!(result.stderr.is_empty(), "{input}: {result:?}");
+        let text = String::from_utf8(result.stdout).unwrap();
+        let choices: Vec<_> = text
+            .lines()
+            .map(|line| line.split('\t').next().unwrap())
+            .collect();
+        for name in required {
+            assert!(choices.contains(name), "{input}: {choices:?}");
+        }
+        for name in excluded {
+            assert!(!choices.contains(name), "{input}: {choices:?}");
+        }
     }
 }
 

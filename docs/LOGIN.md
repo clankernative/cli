@@ -156,6 +156,6 @@ that tested macOS flow, not other companies, Linux Secret Service, or live
 wrong-account/revoked-grant cases; those still need their own qualification.
 
 Admitted `call`/`openapi` are implemented separately; see [API.md](API.md).
-Offline Bash/Zsh generation is documented in [COMPLETION.md](COMPLETION.md).
-Company-wide app discovery, Fish completion, token export and managed-machine
+Offline Bash/Zsh/Fish generation is documented in [COMPLETION.md](COMPLETION.md).
+Company-wide app discovery, token export and managed-machine
 authentication remain separate work. Login currently selects an exact app origin.

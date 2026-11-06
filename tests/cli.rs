@@ -71,6 +71,7 @@ fn catalog_keeps_aliases_and_retirement_distinct() {
             "secrets status",
             "completion bash",
             "completion zsh",
+            "completion fish",
             "logout"
         ]
     );

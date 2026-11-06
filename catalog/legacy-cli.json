@@ -845,7 +845,7 @@
       "disposition": "reimplement",
       "proposed_command": "day2 completion bash",
       "behavior": "Generate completion definitions for Bash.",
-      "day2_support": "Offline generation uses the executable parser. Native shell grammar and Bash command-selection checks do not establish company app discovery or hosted access.",
+      "day2_support": "Offline generation uses the executable parser. Native shell grammar and Bash/Fish command-selection checks do not establish company app discovery or hosted access.",
       "required_work": "Regenerate saved completion after updating the executable; company app discovery remains separate work.",
       "safety_contract": "Generation performs no credential lookup, browser launch or instance request; only implemented parser commands are candidates.",
       "dependencies": [
@@ -866,7 +866,7 @@
       "disposition": "reimplement",
       "proposed_command": "day2 completion zsh",
       "behavior": "Generate completion definitions for Zsh.",
-      "day2_support": "Offline generation uses the executable parser. Native shell grammar and Bash command-selection checks do not establish company app discovery or hosted access.",
+      "day2_support": "Offline generation uses the executable parser. Native shell grammar and Bash/Fish command-selection checks do not establish company app discovery or hosted access.",
       "required_work": "Regenerate saved completion after updating the executable; company app discovery remains separate work.",
       "safety_contract": "Generation performs no credential lookup, browser launch or instance request; only implemented parser commands are candidates.",
       "dependencies": [
@@ -881,17 +881,18 @@
       "legacy_command": "completion fish",
       "legacy_state": "active",
       "alias_of": null,
-      "implementation_status": "planned",
+      "implementation_status": "implemented_unqualified",
       "category": "distribution",
       "phase": "M1",
       "disposition": "reimplement",
       "proposed_command": "day2 completion fish",
       "behavior": "Generate completion definitions for Fish.",
-      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
-      "required_work": "Ship deterministic completion or verified release assets through a reviewed distribution contract.",
-      "safety_contract": "Verify executable identity and preserve package-manager ownership; completion must not grant authority.",
+      "day2_support": "Offline generation uses the executable parser. Native shell grammar and Bash/Fish command-selection checks do not establish company app discovery or hosted access.",
+      "required_work": "Regenerate saved completion after updating the executable; company app discovery remains separate work.",
+      "safety_contract": "Generation performs no credential lookup, browser launch or instance request; only implemented parser commands are candidates.",
       "dependencies": [
-        "reviewed distribution contract"
+        "installed employee CLI",
+        "matching local shell"
       ],
       "day2_evidence": [
         "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/README.md"
