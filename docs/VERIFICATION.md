@@ -156,3 +156,9 @@ installation, refuses existing destinations, and retains notices. One narrow
 Zizmor annotation documents its local-action-only self-repository suggestion on a
 reusable workflow call; GitHub and pinned Actionlint require the `./` workflow
 syntax. No check is disabled or skipped.
+
+`.github/release-tag-rules.json` records two server-applied tag rules: only the
+trusted maintainer can create `v*` refs; no actor bypasses tag update/deletion
+restrictions. These are independent of main's mandatory checks and PR policy.
+Read back actual repository settings before publishing; a configuration file
+alone is not enforcement.

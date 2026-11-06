@@ -36,6 +36,8 @@ verify its checksum, and extract the whole archive. Keep its notices with the
 executable. `SOURCE.json` records source commit, target and Rust compiler. Every
 release reruns the full reusable CI on the tagged inputs, checks main ancestry,
 builds on each native target, and publishes only after both archives succeed.
+Active repository tag rules restrict `v*` creation to the trusted maintainer and
+prevent every actor from updating or deleting existing release tags.
 The source application has no license declaration; dependency notices do not
 assign a license to the application.
 
