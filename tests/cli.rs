@@ -69,6 +69,8 @@ fn catalog_keeps_aliases_and_retirement_distinct() {
             "secrets add",
             "secrets update",
             "secrets status",
+            "completion bash",
+            "completion zsh",
             "logout"
         ]
     );

@@ -155,6 +155,7 @@ runtime and client evidence stays in private company records. This establishes
 that tested macOS flow, not other companies, Linux Secret Service, or live
 wrong-account/revoked-grant cases; those still need their own qualification.
 
-The rest of M1 (`call`, `openapi`, completion and
-token export) remains planned; this change does not claim a general remote API
-client or managed-machine authentication.
+Admitted `call`/`openapi` are implemented separately; see [API.md](API.md).
+Offline Bash/Zsh generation is documented in [COMPLETION.md](COMPLETION.md).
+Company-wide app discovery, Fish completion, token export and managed-machine
+authentication remain separate work. Login currently selects an exact app origin.

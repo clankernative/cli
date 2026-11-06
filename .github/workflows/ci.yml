@@ -45,13 +45,15 @@ jobs:
         env:
           CLIPPY_CONF_DIR: ${{ github.workspace }}/architecture
           CARGO_TARGET_DIR: target/architecture
-      - run: cargo test --locked --all-targets --all-features
-      - name: Qualify native Linux credential storage
+      - name: Install Linux verification dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends gnome-keyring dbus
-          sh scripts/qualify-secret-service.sh
+          sudo apt-get install -y --no-install-recommends gnome-keyring dbus zsh
+      - run: cargo test --locked --all-targets --all-features
+      - name: Qualify native Linux credential storage
+        if: runner.os == 'Linux'
+        run: sh scripts/qualify-secret-service.sh
       - run: cargo test --locked --doc --all-features
       - run: cargo doc --locked --no-deps --all-features --document-private-items
       - run: cargo build --locked --release --all-targets --all-features

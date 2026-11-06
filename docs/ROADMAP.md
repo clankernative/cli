@@ -8,6 +8,8 @@ The inventory accounts for 41 legacy spellings. Local app-owner commands now
 implement the permission foundation for later secret values and snapshot export;
 they are new commands rather than additional historical v1 parser leaves.
 M0 and M0.1 are complete. M1 includes human login and admitted app API calls.
+Offline Bash/Zsh completion is generated from the implemented parser. Fish
+completion and company-wide app discovery remain planned.
 A private macOS company canary has live auth and query evidence; Linux credential
 storage has native Secret Service evidence. Each company and target still needs
 its own hosted qualification per [LOGIN.md](LOGIN.md) and [API.md](API.md).

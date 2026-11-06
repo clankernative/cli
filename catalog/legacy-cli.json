@@ -8,7 +8,7 @@
   },
   "definitions": {
     "counting": "41 historical command spellings: 39 canonical commands, one alias (alerts), one retired command (metrics).",
-    "implementation_status": "planned means absent; omitted means deliberately excluded; implemented_unqualified means the client is implemented with local/mock evidence but live company qualification remains required. App owners, catalog and roadmap are implemented separately from this historical inventory.",
+    "implementation_status": "planned means absent; omitted means deliberately excluded; implemented_unqualified means client behavior is implemented, with evidence and limits in its command documentation. Applicable target/company qualification remains required. App owners, catalog and roadmap are implemented separately from this historical inventory.",
     "day2_support": "Public platform references identify the reviewed source; they do not establish qualified hosted support or live provider readiness.",
     "proposed_command": "Proposed Day 2 UX, subject to the reviewed integration boundary. These strings are documentation, not executable next_actions.",
     "disposition": "adapt uses an existing foundation; redesign changes auth/UX; reimplement uses Rust; replace uses Roc app conventions; needs-service requires a hosted/provider contract; instance-extension is optional; consolidate maps an alias to one command; omit excludes retirement.",
@@ -839,17 +839,18 @@
       "legacy_command": "completion bash",
       "legacy_state": "active",
       "alias_of": null,
-      "implementation_status": "planned",
+      "implementation_status": "implemented_unqualified",
       "category": "distribution",
       "phase": "M1",
       "disposition": "reimplement",
       "proposed_command": "day2 completion bash",
       "behavior": "Generate completion definitions for Bash.",
-      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
-      "required_work": "Ship deterministic completion or verified release assets through a reviewed distribution contract.",
-      "safety_contract": "Verify executable identity and preserve package-manager ownership; completion must not grant authority.",
+      "day2_support": "Offline generation uses the executable parser. Native shell grammar and Bash command-selection checks do not establish company app discovery or hosted access.",
+      "required_work": "Regenerate saved completion after updating the executable; company app discovery remains separate work.",
+      "safety_contract": "Generation performs no credential lookup, browser launch or instance request; only implemented parser commands are candidates.",
       "dependencies": [
-        "reviewed distribution contract"
+        "installed employee CLI",
+        "matching local shell"
       ],
       "day2_evidence": [
         "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/README.md"
@@ -859,17 +860,18 @@
       "legacy_command": "completion zsh",
       "legacy_state": "active",
       "alias_of": null,
-      "implementation_status": "planned",
+      "implementation_status": "implemented_unqualified",
       "category": "distribution",
       "phase": "M1",
       "disposition": "reimplement",
       "proposed_command": "day2 completion zsh",
       "behavior": "Generate completion definitions for Zsh.",
-      "day2_support": "Public platform references are listed below. Operational support requires separate integration and provider qualification.",
-      "required_work": "Ship deterministic completion or verified release assets through a reviewed distribution contract.",
-      "safety_contract": "Verify executable identity and preserve package-manager ownership; completion must not grant authority.",
+      "day2_support": "Offline generation uses the executable parser. Native shell grammar and Bash command-selection checks do not establish company app discovery or hosted access.",
+      "required_work": "Regenerate saved completion after updating the executable; company app discovery remains separate work.",
+      "safety_contract": "Generation performs no credential lookup, browser launch or instance request; only implemented parser commands are candidates.",
       "dependencies": [
-        "reviewed distribution contract"
+        "installed employee CLI",
+        "matching local shell"
       ],
       "day2_evidence": [
         "https://github.com/clankernative/platform/blob/c203a2262d19d5b3667172a67fe3126a6efcdba6/cli/README.md"

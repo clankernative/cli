@@ -15,7 +15,7 @@ use zeroize::Zeroizing;
 const PATH: &str = "/api/app-secrets";
 
 #[derive(Args)]
-pub(super) struct Context {
+pub(super) struct AppContext {
     app: String,
     #[command(flatten)]
     auth: auth::Context,
@@ -24,7 +24,7 @@ pub(super) struct Context {
 #[derive(Args)]
 pub(super) struct Mutation {
     #[command(flatten)]
-    context: Context,
+    context: AppContext,
     /// Logical secret name within the app's approved namespace
     name: String,
     /// Read the exact value from stdin, including any trailing newline
@@ -44,14 +44,14 @@ pub(super) struct Mutation {
 #[derive(Args)]
 pub(super) struct Status {
     #[command(flatten)]
-    context: Context,
+    context: AppContext,
     request_id: String,
 }
 
 #[derive(Subcommand)]
 pub(super) enum Command {
     /// List managed secret metadata, without fetching values
-    List(Context),
+    List(AppContext),
     /// Create an app secret and its first stored value
     Create(Mutation),
     /// Store a replacement value as a new version; app activation is separate
@@ -142,7 +142,7 @@ fn name(value: &str) -> bool {
             .all(|b| b.is_ascii_alphanumeric() || b"_-".contains(&b))
 }
 
-fn context(context: &Context) -> Result<(), Failure> {
+fn context(context: &AppContext) -> Result<(), Failure> {
     let app = &context.app;
     if app.is_empty()
         || app.len() > 48
