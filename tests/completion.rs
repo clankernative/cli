@@ -80,7 +80,7 @@ fn fish_completes_nested_commands_without_configuration() {
             .args([
                 "--no-config",
                 "--command",
-                &format!("source /dev/stdin; complete --do-complete='{input}'"),
+                &format!("source -; complete --do-complete='{input}'"),
             ])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
