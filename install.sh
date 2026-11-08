@@ -1,7 +1,7 @@
 #!/bin/sh
 # Install a checksum- and provenance-verified standalone employee CLI.
 set -eu
-version=0.2.0
+version=0.3.0
 prefix="${HOME}/.local/bin"
 while [ "$#" -gt 0 ]; do
   case "$1" in
