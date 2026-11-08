@@ -50,7 +50,7 @@ impl Fixture {
         }
         let archive = fixture
             .root
-            .join("assets/day2-cli-v0.2.0-aarch64-apple-darwin.tar.gz");
+            .join("assets/day2-cli-v0.3.0-aarch64-apple-darwin.tar.gz");
         assert!(
             Command::new("tar")
                 .args(["-czf"])
@@ -65,7 +65,7 @@ impl Fixture {
         fs::write(
             fixture
                 .root
-                .join("assets/day2-cli-v0.2.0-aarch64-apple-darwin.tar.gz.sigstore.jsonl"),
+                .join("assets/day2-cli-v0.3.0-aarch64-apple-darwin.tar.gz.sigstore.jsonl"),
             "synthetic test bundle",
         )
         .unwrap();
@@ -79,7 +79,7 @@ impl Fixture {
         fs::write(
             fixture.root.join("assets/SHA256SUMS"),
             format!(
-                "{}  day2-cli-v0.2.0-aarch64-apple-darwin.tar.gz\n",
+                "{}  day2-cli-v0.3.0-aarch64-apple-darwin.tar.gz\n",
                 digest.split_whitespace().next().unwrap()
             ),
         )
@@ -151,7 +151,7 @@ fn installer_requires_both_checksum_and_provenance_and_retains_notices() {
             fs::write(
                 fixture.root.join("assets/SHA256SUMS"),
                 format!(
-                    "{}  day2-cli-v0.2.0-aarch64-apple-darwin.tar.gz\n",
+                    "{}  day2-cli-v0.3.0-aarch64-apple-darwin.tar.gz\n",
                     "0".repeat(64)
                 ),
             )
@@ -161,7 +161,7 @@ fn installer_requires_both_checksum_and_provenance_and_retains_notices() {
             fs::remove_file(
                 fixture
                     .root
-                    .join("assets/day2-cli-v0.2.0-aarch64-apple-darwin.tar.gz.sigstore.jsonl"),
+                    .join("assets/day2-cli-v0.3.0-aarch64-apple-darwin.tar.gz.sigstore.jsonl"),
             )
             .unwrap();
         }

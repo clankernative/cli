@@ -42,9 +42,9 @@ It does not claim live provider verification.
 
 ## Install
 
-The published native release is [v0.2.0](https://github.com/clankernative/cli/releases/tag/v0.2.0).
-Secret storage and shell completion on main are for the next release; build from
-source to use them until that release is published.
+Release [v0.3.0](https://github.com/clankernative/cli/releases/tag/v0.3.0) adds owner-authenticated
+secret storage and offline Bash, Zsh and Fish completion to the employee frontend.
+Secret commands require the corresponding platform endpoint and operator-activated namespace.
 
 See [verified native installers](docs/INSTALL.md) for macOS Apple Silicon and
 Linux x86_64 release archives, checksums, provenance and credential-store requirements.
