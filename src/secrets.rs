@@ -1,5 +1,5 @@
 //! App-scoped metadata and one-shot secret writes; payloads never enter output.
-use super::{Failure, auth, owners::Stamp};
+use super::{CommandOutput, Failure, auth, owners::Stamp};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use clap::{Args, Subcommand};
 use serde::{Deserialize, Serialize};
@@ -11,6 +11,12 @@ use std::{
     path::PathBuf,
 };
 use zeroize::Zeroizing;
+
+mod sensitive;
+pub(super) use sensitive::Sqlite;
+pub(super) fn sqlite(command: &Sqlite) -> Result<CommandOutput, Failure> {
+    sensitive::sqlite(command)
+}
 
 const PATH: &str = "/api/app-secrets";
 
@@ -50,6 +56,10 @@ pub(super) struct Status {
 
 #[derive(Subcommand)]
 pub(super) enum Command {
+    /// Reveal the selected stored version to a new private file or explicit stdout
+    Reveal(sensitive::Reveal),
+    /// Delete the managed container and all its stored versions
+    Delete(sensitive::Delete),
     /// List managed secret metadata, without fetching values
     List(AppContext),
     /// Create an app secret and its first stored value
@@ -64,6 +74,7 @@ pub(super) enum Command {
 #[serde(deny_unknown_fields)]
 struct Entry {
     name: String,
+    incarnation: String,
     container_created: bool,
     version: Option<u64>,
     blocked: bool,
@@ -86,6 +97,8 @@ struct Listing {
 enum Operation {
     Create,
     Rotate,
+    Delete,
+    Reveal,
 }
 
 #[derive(Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
@@ -95,7 +108,11 @@ enum State {
     ContainerDispatched,
     ContainerCreated,
     VersionDispatched,
+    DeleteDispatched,
+    ReadDispatched,
     Stored,
+    Deleted,
+    Revealed,
     Refused,
     Unknown,
 }
@@ -108,6 +125,7 @@ struct Receipt {
     scope: String,
     actor: String,
     name: String,
+    incarnation: String,
     operation: Operation,
     request_id: String,
     authority: Stamp,
@@ -169,7 +187,7 @@ fn listing(client: &auth::AppClient, app: &str) -> Result<Listing, Failure> {
         .iter()
         .map(|entry| entry.name.as_str())
         .collect();
-    if listing.protocol != 1
+    if listing.protocol != 2
         || listing.kind != "app-secrets"
         || listing.scope != client.scope(app)
         || listing.actor != client.actor()
@@ -178,6 +196,7 @@ fn listing(client: &auth::AppClient, app: &str) -> Result<Listing, Failure> {
         || names.len() != listing.secrets.len()
         || listing.secrets.iter().any(|entry| {
             !name(&entry.name)
+                || !incarnation(&entry.incarnation)
                 || !request_id(&entry.request_id)
                 || entry.version.is_some_and(|v| !version(v))
                 || (!entry.container_created && entry.version.is_some())
@@ -189,15 +208,16 @@ fn listing(client: &auth::AppClient, app: &str) -> Result<Listing, Failure> {
 }
 
 fn valid_receipt(receipt: &Receipt, client: &auth::AppClient, app: &str) -> bool {
-    receipt.protocol == 1
+    receipt.protocol == 2
         && receipt.kind == "app-secret-write"
         && receipt.scope == client.scope(app)
         && name(&receipt.name)
+        && incarnation(&receipt.incarnation)
         && request_id(&receipt.request_id)
         && receipt.authority.valid()
         && !receipt.activation_performed
         && receipt.version.is_none_or(version)
-        && (receipt.state == State::Stored) == receipt.version.is_some()
+        && (matches!(receipt.state, State::Stored | State::Revealed)) == receipt.version.is_some()
 }
 
 fn read_value(input: &Mutation) -> Result<Zeroizing<Vec<u8>>, Failure> {
@@ -254,7 +274,7 @@ fn check_state(
                 && entry.version == expected
                 && entry.request_id != args.request_id
         }
-        (Operation::Rotate, None) => false,
+        (Operation::Rotate, None) | (Operation::Delete | Operation::Reveal, _) => false,
     };
     if allowed {
         Ok(())
@@ -292,8 +312,19 @@ fn list_text(snapshot: &Listing, app: &str) -> String {
     text
 }
 
-pub(super) fn run(command: &Command) -> Result<(Value, String), Failure> {
-    run_using(command, auth::AppClient::open)
+pub(super) fn run(command: &Command, machine: bool) -> Result<CommandOutput, Failure> {
+    match command {
+        Command::Reveal(args) => sensitive::reveal(args, machine),
+        Command::Delete(args) => sensitive::delete(args),
+        _ => run_using(command, auth::AppClient::open).map(CommandOutput::from),
+    }
+}
+
+fn incarnation(value: &str) -> bool {
+    value.len() == 32
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 #[cfg(test)]
@@ -330,6 +361,7 @@ fn run_using(
         Command::List(context) => context,
         Command::Status(args) => &args.context,
         Command::Create(args) | Command::Rotate(args) => &args.context,
+        Command::Reveal(_) | Command::Delete(_) => return Err(invalid()),
     };
     context(selected)?;
     if let Command::Status(args) = command {
@@ -369,17 +401,7 @@ fn run_using(
         return Err(invalid());
     };
     check_state(&snapshot, args, operation, expected_version)?;
-    let value = read_value(args)?;
-    let encoded = Zeroizing::new(STANDARD.encode(&value));
-    // Names/IDs use closed ASCII alphabets; serialize only public metadata.
-    let authority = serde_json::to_string(&snapshot.authority).map_err(|_| protocol())?;
-    let expected = serde_json::to_string(&expected_version).map_err(|_| protocol())?;
-    let operation_json = serde_json::to_string(&operation).map_err(|_| protocol())?;
-    let body = format!(
-        "{{\"operation\":{operation_json},\"name\":\"{}\",\"expected_authority\":{authority},\"expected_version\":{expected},\"value\":\"{}\"}}",
-        args.name,
-        encoded.as_str()
-    );
+    let body = mutation_body(&snapshot, args, operation, expected_version)?;
     let receipt: Receipt = client.write(&args.request_id, body).map_err(|cause| {
         if matches!(cause.code, "secret_conflict" | "secret_permission_denied") { cause }
         else { Failure { exit_code:5, code:"secret_outcome_unknown", message:format!("Request {} has no confirmed outcome. Inspect app secrets status; do not resubmit the value.",args.request_id) } }
@@ -387,6 +409,12 @@ fn run_using(
     if !valid_receipt(&receipt, &client, &selected.app)
         || receipt.actor != client.actor()
         || receipt.name != args.name
+        || (operation == Operation::Rotate
+            && snapshot
+                .secrets
+                .iter()
+                .find(|e| e.name == args.name)
+                .is_none_or(|e| e.incarnation != receipt.incarnation))
         || receipt.operation != operation
         || receipt.request_id != args.request_id
         || serde_json::to_value(&receipt.authority).map_err(|_| protocol())?
@@ -414,4 +442,32 @@ fn run_using(
         receipt.version.ok_or_else(protocol)?
     );
     Ok((serde_json::to_value(receipt).map_err(|_| protocol())?, text))
+}
+
+fn mutation_body(
+    snapshot: &Listing,
+    args: &Mutation,
+    operation: Operation,
+    expected_version: Option<u64>,
+) -> Result<String, Failure> {
+    let value = read_value(args)?;
+    let encoded = Zeroizing::new(STANDARD.encode(&value));
+    // Names/IDs use closed ASCII alphabets; serialize only public metadata.
+    let authority = serde_json::to_string(&snapshot.authority).map_err(|_| protocol())?;
+    let expected = serde_json::to_string(&expected_version).map_err(|_| protocol())?;
+    let operation_json = serde_json::to_string(&operation).map_err(|_| protocol())?;
+    let incarnation = serde_json::to_string(
+        &snapshot
+            .secrets
+            .iter()
+            .find(|e| e.name == args.name)
+            .filter(|_| operation == Operation::Rotate)
+            .map(|e| e.incarnation.as_str()),
+    )
+    .map_err(|_| protocol())?;
+    Ok(format!(
+        "{{\"operation\":{operation_json},\"name\":\"{}\",\"expected_authority\":{authority},\"expected_version\":{expected},\"expected_incarnation\":{incarnation},\"value\":\"{}\"}}",
+        args.name,
+        encoded.as_str()
+    ))
 }

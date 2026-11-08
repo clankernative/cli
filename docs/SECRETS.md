@@ -1,6 +1,6 @@
 # App secret storage
 
-`app secrets list/create/rotate/status` uses the saved human login for the
+`app secrets list/create/rotate/status/reveal/delete` uses the saved human login for the
 selected app origin. The platform authenticates the actual session actor and
 checks active app ownership for every operation. Local operator assertions do
 not authenticate these requests. Configure company login first per
@@ -48,7 +48,39 @@ recovery or reconciliation is implemented. Definitively refused writes can be
 reprepared from current metadata with a new ID.
 
 `list` reports only secrets managed by this feature in the current app namespace;
-it does not enumerate or adopt existing infrastructure secrets. Secret reveal,
-deletion, consumer-aware retirement and app activation remain separate work.
+it does not enumerate or adopt existing infrastructure secrets. Secret reveal and deletion use the same owner/session channel. Consumer-aware retirement and app activation remain separate work.
 Local HTTP/protocol tests and synthetic live provider canaries do not qualify
 hosted IAP access, native credential stores or a deployed app endpoint.
+
+
+## Reveal and deletion
+
+```console
+day2 app secrets reveal reports API_KEY --output /private/api-key --request-id reveal-125
+day2 app secrets delete reports API_KEY --expected-version 2 --request-id delete-126
+```
+
+Reveal selects the exact currently listed incarnation and version. `--version`
+can require that version explicitly. Use a new `--output` file (mode 0600,
+exclusive creation); existing files and symlinks are refused. Exact bytes,
+including newlines, are preserved. `--stdout` deliberately returns only value
+bytes and is incompatible with `--json`/`--agent`. Structured output and
+diagnostics never include the value. A failed or interrupted command can leave
+a private partial destination; inspect it before repeating the operation with a
+new request ID. Filesystem parent directories remain the user's trust boundary.
+
+Delete removes the managed provider container and all its stored versions.
+It requires the currently listed version (`none` only for an empty container),
+a fresh request ID and current ownership. Admission compares authority,
+incarnation and version before dispatch. The provider must match the app scope,
+original creation label and current ETag. Unknown deletion outcomes block that
+name; the CLI never retries. Inspect `status` with the original ID.
+
+Recreating a deleted logical name creates a different physical resource. Old
+immutable provider version references continue to identify the old resource;
+they cannot resolve to replacement bytes. Deletion does not revoke an upstream
+API key or alter any running app binding.
+
+This surface requires Platform app-secret protocol 2 and fresh metadata schema
+2. There is no implicit upgrade or compatibility fallback. Recreate disposable
+canaries; preserve persisted GoLinks data.

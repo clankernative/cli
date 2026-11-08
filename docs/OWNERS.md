@@ -27,10 +27,10 @@ day2 app owners check reports alice@example.com --permission secrets.read --inst
 `check` is a local operator diagnostic, not login as the named actor. It returns
 exit 3 when denied and performs no secret read or snapshot export. The role's
 permission names are `audit.read`, `secrets.list`, `secrets.read`, `secrets.create`,
-`secrets.rotate` and `sqlite.download`. Audit and secret storage use the shared guard. Future sensitive reads
+`secrets.rotate`, `secrets.delete` and `sqlite.download`. Audit, secret operations and SQLite download use the shared guard. Sensitive reads
 must authenticate the actor and recheck current authority inside the actual
 protected transaction; a prior `check` response or stamp cannot authorize them.
-The future endpoint must separately bind the requested secret or snapshot to that
+Each endpoint must separately bind the requested secret or snapshot to that
 app; this role check does not authorize shared/platform secrets or provider-wide access.
 
 Use the exact `result.result.stamp` from `list` for a change:
@@ -79,5 +79,5 @@ the CLI does not automatically retry. SIGINT/SIGTERM also terminate that group
 and report exit 130 with unknown-outcome guidance. Raw platform stderr is not reflected into
 agent output. Inspect current authority after any uncertain write, then retry
 only the original identity. This interface asserts a trusted local operator;
-production remote authentication, secret values and snapshot downloads remain
-separate work.
+remote operator authentication remains separate work. Secret values and SQLite
+downloads use human app sessions, not this local assertion.

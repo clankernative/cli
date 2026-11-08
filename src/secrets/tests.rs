@@ -2,10 +2,10 @@ use super::*;
 use serde_json::json;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-const VALUE: &[u8] = b"SYNTHETIC_SECRET_CLI_VALUE_NEVER_OUTPUT\n";
-struct File(PathBuf);
+pub(super) const VALUE: &[u8] = b"SYNTHETIC_SECRET_CLI_VALUE_NEVER_OUTPUT\n";
+pub(super) struct File(pub(super) PathBuf);
 impl File {
-    fn new(value: &[u8]) -> Self {
+    pub(super) fn new(value: &[u8]) -> Self {
         static NEXT: AtomicU64 = AtomicU64::new(0);
         let path = std::env::temp_dir().join(format!(
             "day2-secret-test-{}-{}",
@@ -21,25 +21,25 @@ impl Drop for File {
         let _ = std::fs::remove_file(&self.0);
     }
 }
-fn context() -> AppContext {
+pub(super) fn context() -> AppContext {
     AppContext {
         app: "reports".into(),
         auth: auth::Context::default(),
     }
 }
-fn snapshot() -> Value {
-    json!({"protocol":1,"kind":"app-secrets","scope":"company/production/reports","actor":"employee@company.example","authority":{"epoch":format!("sha256:{}", "a".repeat(64)),"revision":7},"secrets":[]})
+pub(super) fn snapshot() -> Value {
+    json!({"protocol":2,"kind":"app-secrets","scope":"company/production/reports","actor":"employee@company.example","authority":{"epoch":format!("sha256:{}", "a".repeat(64)),"revision":7},"secrets":[]})
 }
-fn write_snapshot(rotate: bool) -> Value {
+pub(super) fn write_snapshot(rotate: bool) -> Value {
     let mut result = snapshot();
     if rotate {
-        result["secrets"] = json!([{"name":"API_KEY","container_created":true,"version":7,"blocked":false,"request_id":"previous-request"}]);
+        result["secrets"] = json!([{"name":"API_KEY","incarnation":"0123456789abcdef0123456789abcdef","container_created":true,"version":7,"blocked":false,"request_id":"previous-request"}]);
     }
     result
 }
 
-fn receipt(operation: &str, version: Option<u64>, state: &str) -> Value {
-    json!({"protocol":1,"kind":"app-secret-write","scope":"company/production/reports","actor":"employee@company.example","authority":snapshot()["authority"],"name":"API_KEY","operation":operation,"request_id":"request-1","state":state,"version":version,"activation_performed":false})
+pub(super) fn receipt(operation: &str, version: Option<u64>, state: &str) -> Value {
+    json!({"protocol":2,"kind":"app-secret-write","scope":"company/production/reports","actor":"employee@company.example","authority":snapshot()["authority"],"name":"API_KEY","incarnation":"0123456789abcdef0123456789abcdef","operation":operation,"request_id":"request-1","state":state,"version":version,"activation_performed":false})
 }
 fn mutation(path: PathBuf, expected_version: Option<&str>) -> Mutation {
     Mutation {

@@ -13,6 +13,77 @@ pub(crate) struct Client {
 }
 
 impl Client {
+    pub(crate) fn download(
+        &self,
+        path: &str,
+        id: &str,
+        body: String,
+    ) -> Result<(zeroize::Zeroizing<Vec<u8>>, Vec<u8>)> {
+        use base64::Engine as _;
+        let (limit, maximum) = match path {
+            "/api/app-secrets/reveal" => (http::BodyLimit::SecretValue, 65_536),
+            "/api/app-sqlite" => (http::BodyLimit::Sqlite, 16_777_216),
+            _ => return Err(super::invalid()),
+        };
+        let mut request = http::Request::json(self.origin.endpoint(path), body);
+        request.response_limit = limit;
+        request
+            .headers
+            .retain(|(key, _)| !key.eq_ignore_ascii_case("accept"));
+        request.headers.extend([
+            ("Accept".into(), "application/octet-stream".into()),
+            ("Origin".into(), self.origin.0.clone()),
+            ("X-CSRF-Token".into(), self.csrf.0.clone()),
+            ("Idempotency-Key".into(), id.into()),
+        ]);
+        request.bearer(&self.saved.id_token);
+        if let Some(cookie) = &self.saved.cookie {
+            request.cookie(cookie);
+        }
+        let mut response = self.transport.send(request)?;
+        if response.status == 403 {
+            return Err(fail(
+                "secret_permission_denied",
+                "The signed-in person is not authorized for this app's protected operation.",
+            ));
+        }
+        if response.status == 409 {
+            return Err(fail(
+                "secret_conflict",
+                "The selected version, authority or request ID changed. Inspect current metadata.",
+            ));
+        }
+        let header = |name: &str| -> Option<&str> {
+            let mut values = response
+                .headers
+                .iter()
+                .filter(|(key, _)| key.eq_ignore_ascii_case(name));
+            let value = values.next()?.1.as_str();
+            if values.next().is_some() {
+                None
+            } else {
+                Some(value)
+            }
+        };
+        if response.status != 200
+            || response.body.is_empty()
+            || response.body.len() > maximum
+            || header("content-type") != Some("application/octet-stream")
+            || header("cache-control") != Some("no-store")
+        {
+            return Err(super::invalid());
+        }
+        let encoded = header("x-day2-result")
+            .filter(|s| s.len() <= 8192)
+            .ok_or_else(super::invalid)?;
+        let decoded = base64::engine::general_purpose::STANDARD
+            .decode(encoded)
+            .map_err(|_| super::invalid())?;
+        Ok((
+            zeroize::Zeroizing::new(std::mem::take(&mut response.body)),
+            decoded,
+        ))
+    }
     pub(crate) fn open(context: &Context) -> Result<Self> {
         let guard = lock::Guard::acquire()?;
         let transport = http::Native::new();
@@ -46,6 +117,7 @@ impl Client {
     ) -> Result<T> {
         let write = mutation.is_some();
         if path != "/api/app-secrets"
+            && path != "/api/app-sqlite"
             && !path
                 .strip_prefix("/api/app-secrets/requests/")
                 .is_some_and(super::super::secrets::request_id)
@@ -110,9 +182,15 @@ pub(crate) mod testing {
     }
     pub(crate) type Requests = Rc<RefCell<Vec<Sent>>>;
 
+    struct Reply {
+        status: u16,
+        headers: Vec<(String, String)>,
+        body: Vec<u8>,
+    }
+
     struct Mock {
         requests: Requests,
-        replies: RefCell<VecDeque<(u16, String)>>,
+        replies: RefCell<VecDeque<Reply>>,
     }
 
     impl http::Transport for Mock {
@@ -123,20 +201,57 @@ pub(crate) mod testing {
                 headers: request.headers,
                 body,
             });
-            let (status, body) = self
+            let reply = self
                 .replies
                 .borrow_mut()
                 .pop_front()
                 .ok_or_else(super::super::invalid)?;
             Ok(http::Response {
-                status,
-                headers: vec![("Content-Type".into(), "application/json".into())],
-                body: body.into_bytes(),
+                status: reply.status,
+                headers: reply.headers,
+                body: reply.body,
             })
         }
     }
 
+    fn json_replies(replies: Vec<(u16, String)>) -> Vec<Reply> {
+        replies
+            .into_iter()
+            .map(|(status, body)| Reply {
+                status,
+                headers: vec![("Content-Type".into(), "application/json".into())],
+                body: body.into_bytes(),
+            })
+            .collect()
+    }
+
     pub(crate) fn client(replies: Vec<(u16, String)>) -> (Client, Requests) {
+        client_replies(json_replies(replies))
+    }
+
+    pub(crate) fn download_client(
+        replies: Vec<(u16, String)>,
+        metadata: &serde_json::Value,
+        bytes: Vec<u8>,
+    ) -> (Client, Requests) {
+        use base64::Engine as _;
+        let mut replies = json_replies(replies);
+        replies.push(Reply {
+            status: 200,
+            headers: vec![
+                ("Content-Type".into(), "application/octet-stream".into()),
+                ("Cache-Control".into(), "no-store".into()),
+                (
+                    "X-Day2-Result".into(),
+                    base64::engine::general_purpose::STANDARD.encode(metadata.to_string()),
+                ),
+            ],
+            body: bytes,
+        });
+        client_replies(replies)
+    }
+
+    fn client_replies(replies: Vec<Reply>) -> (Client, Requests) {
         let binding = super::super::tests::binding();
         let origin = Origin::parse(&binding.instance_origin).unwrap();
         let requests = Rc::new(RefCell::new(Vec::new()));
@@ -165,5 +280,36 @@ pub(crate) mod testing {
             },
             requests,
         )
+    }
+    #[test]
+    fn binary_download_refuses_redirects_duplicate_headers_wrong_types_and_oversized_payloads() {
+        for case in 0..6 {
+            let mut headers = vec![
+                ("Content-Type".into(), "application/octet-stream".into()),
+                ("Cache-Control".into(), "no-store".into()),
+                ("X-Day2-Result".into(), "e30=".into()),
+            ];
+            let mut status = 200;
+            match case {
+                0 => status = 302,
+                1 => headers[0].1 = "application/json".into(),
+                2 => headers[1].1 = "public".into(),
+                3 => headers.push(headers[2].clone()),
+                4 => headers[2].1 = "not base64".into(),
+                _ => {}
+            }
+            let body = vec![b'x'; if case == 5 { 65_537 } else { 10 }];
+            let (client, requests) = client_replies(vec![Reply {
+                status,
+                headers,
+                body,
+            }]);
+            assert!(
+                client
+                    .download("/api/app-secrets/reveal", "read-1", "{}".into())
+                    .is_err()
+            );
+            assert_eq!(requests.borrow().len(), 1);
+        }
     }
 }

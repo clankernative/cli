@@ -91,13 +91,14 @@
     {
       "id": "M3",
       "title": "Snapshots and app operations visibility",
-      "status": "planned",
+      "status": "in_progress",
       "depends_on": [
         "M1",
         "M2",
         "M0.1"
       ],
       "deliverables": [
+        "Implemented: app sqlite download exports admitted business tables to a new private SQLite file; hosted qualification remains required.",
         "Add local snapshot list/export/tables/schema/query against verified read-only bundles, then authorized remote capture/index/download.",
         "Add bounded app-scoped logs, traces, monitors and trusted dashboard links through an instance service.",
         "Add explicit snapshot import into local development, separate from default app startup."
@@ -147,8 +148,8 @@
         "M0.1"
       ],
       "deliverables": [
-        "Implemented first slice: app secrets list/create/rotate/status over owner-authenticated app sessions; hosted company qualification remains required.",
-        "Rotation stores supplied bytes as a new version. Input is exact bounded stdin or file content; app activation, secret reveal/deletion and protected retirement remain separate work.",
+        "Implemented: app secrets list/create/rotate/status/reveal/delete over owner-authenticated app sessions; hosted qualification remains required.",
+        "Rotation adds a stored version. Reveal requires a deliberate private destination. Deletion uses incarnation/version/authority guards; app activation and protected retirement remain separate.",
         "Expose reconcile/retry/exact/transition/terminated recovery only where Day 2 has a reviewed equivalent."
       ],
       "platform_work": [

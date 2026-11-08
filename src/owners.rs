@@ -50,6 +50,9 @@ enum Permission {
     #[value(name = "secrets.rotate")]
     #[serde(rename = "secrets.rotate")]
     SecretsRotate,
+    #[value(name = "secrets.delete")]
+    #[serde(rename = "secrets.delete")]
+    SecretsDelete,
     #[value(name = "sqlite.download")]
     #[serde(rename = "sqlite.download")]
     SqliteDownload,
@@ -473,8 +476,8 @@ fn validate(
                     .chain(&result.desired_owners)
                     .all(|owner| label(owner))
                 || result.desired_matches_active != (result.owners == result.desired_owners)
-                || result.permissions.len() != 6
-                || permissions.len() != 6
+                || result.permissions.len() != 7
+                || permissions.len() != 7
             {
                 return Err(protocol_error());
             }
@@ -693,7 +696,7 @@ mod tests {
         let (_, app, action, input) = request(&list).unwrap();
         let mut result = response(
             "list",
-            &json!({"stamp":stamp(7),"enabled":true,"owners":["owner"],"desired_owners":[],"desired_matches_active":false,"permissions":["audit.read","secrets.list","secrets.read","secrets.create","secrets.rotate","sqlite.download"]}),
+            &json!({"stamp":stamp(7),"enabled":true,"owners":["owner"],"desired_owners":[],"desired_matches_active":false,"permissions":["audit.read","secrets.list","secrets.read","secrets.create","secrets.rotate","secrets.delete","sqlite.download"]}),
         );
         assert!(
             validate(

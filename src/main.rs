@@ -39,7 +39,7 @@ mod completion;
     about = "Day 2 CLI — company login, app ownership and command inventory"
 )]
 #[command(
-    after_help = "Login requires company discovery and an IAP-allowlisted desktop OAuth client; see docs/LOGIN.md.\nApp owner commands require an explicitly selected local platform CLI.\nApp secrets list/create/rotate use authenticated app sessions. Secret reveal, deletion and SQLite export are not implemented.\nHelp and version use text output; --json/--agent applies to command results and errors."
+    after_help = "Login requires company discovery and an IAP-allowlisted desktop OAuth client; see docs/LOGIN.md.\nApp owner commands require an explicitly selected local platform CLI.\nApp secrets and business-data SQLite downloads use owner-authenticated app sessions. Reveal requires a new private output file or explicit --stdout.\nHelp and version use text output; --json/--agent applies to command results and errors."
 )]
 struct Cli {
     /// Emit one versioned JSON result (also --agent)
@@ -89,6 +89,11 @@ enum Command {
 
 #[derive(Subcommand)]
 enum AppCommand {
+    /// Download admitted business tables through an owner-authenticated session
+    Sqlite {
+        #[command(subcommand)]
+        command: secrets::Sqlite,
+    },
     /// Manage secret values in this app's approved provider namespace
     Secrets {
         #[command(subcommand)]
@@ -163,6 +168,7 @@ fn catalog_text(operations: &[&Operation], detail: bool) -> String {
 enum CommandOutput {
     Formatted(Value, String),
     Raw(String, u8),
+    Bytes(zeroize::Zeroizing<Vec<u8>>),
 }
 
 impl From<(Value, String)> for CommandOutput {
@@ -176,9 +182,7 @@ fn run(cli: &Cli, catalog: &Catalog, roadmap: &Roadmap) -> Result<CommandOutput,
         Command::Completion { shell } => {
             completion::generate(*shell, Cli::command()).map(CommandOutput::from)
         }
-        Command::App {
-            command: AppCommand::Secrets { command },
-        } => secrets::run(command).map(CommandOutput::from),
+        Command::App { command } => run_app(command, cli.json),
         Command::Login(options) => auth::login(options, cli.json).map(CommandOutput::from),
         Command::Whoami(context) => auth::whoami(context).map(CommandOutput::from),
         Command::Logout(context) => auth::logout(context).map(CommandOutput::from),
@@ -188,15 +192,6 @@ fn run(cli: &Cli, catalog: &Catalog, roadmap: &Roadmap) -> Result<CommandOutput,
         Command::Call(options) => {
             auth::call(options).map(|output| CommandOutput::Raw(output.body, output.exit_code))
         }
-        Command::App {
-            command: AppCommand::Owners { command },
-        } => owners::run(command)
-            .map(CommandOutput::from)
-            .map_err(|failure| Failure {
-                exit_code: failure.exit_code,
-                code: failure.code,
-                message: failure.message,
-            }),
         Command::Catalog { command, phase } => {
             let selected_phase = phase
                 .as_deref()
@@ -352,6 +347,9 @@ fn main() -> ExitCode {
         Command::App {
             command: AppCommand::Owners { .. },
         } => "app owners",
+        Command::App {
+            command: AppCommand::Sqlite { .. },
+        } => "app sqlite",
         Command::Catalog { .. } => "catalog",
         Command::Roadmap { .. } => "roadmap",
     };
@@ -372,6 +370,14 @@ fn main() -> ExitCode {
         }
     };
     match run(&cli, &catalog, &roadmap) {
+        Ok(CommandOutput::Bytes(bytes)) => {
+            use std::io::Write as _;
+            if std::io::stdout().lock().write_all(&bytes).is_ok() {
+                ExitCode::SUCCESS
+            } else {
+                ExitCode::FAILURE
+            }
+        }
         Ok(CommandOutput::Raw(body, status)) => {
             let written = write_output(&body);
             if written == ExitCode::SUCCESS {
@@ -388,6 +394,22 @@ fn main() -> ExitCode {
             }
         }
         Err(failure) => emit_failure(command, &failure, cli.json),
+    }
+}
+
+fn run_app(command: &AppCommand, machine: bool) -> Result<CommandOutput, Failure> {
+    match command {
+        AppCommand::Secrets { command } => secrets::run(command, machine),
+        AppCommand::Sqlite { command } => secrets::sqlite(command),
+        AppCommand::Owners { command } => {
+            owners::run(command)
+                .map(CommandOutput::from)
+                .map_err(|failure| Failure {
+                    exit_code: failure.exit_code,
+                    code: failure.code,
+                    message: failure.message,
+                })
+        }
     }
 }
 

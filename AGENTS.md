@@ -18,9 +18,9 @@ the documented platform CLI contract. Auth uses company discovery and the existi
 IAP/app-session channel; it does not provision instance setup or establish live
 qualification. Other planned
 operations in the catalog are requirements, never executable capability claims.
-`app secrets list/create/rotate/status` uses the authenticated app-session HTTP
+`app secrets list/create/rotate/status/reveal/delete` uses the authenticated app-session HTTP
 contract in docs/SECRETS.md. Rotation adds a stored version; it never activates
-bindings. Keep uncertain writes one-shot and secret bytes out of output.
+bindings. Keep uncertain writes one-shot. Values stay out of JSON and diagnostics; reveal requires a new private file or deliberate --stdout. `app sqlite download` exports admitted business data only, per docs/SQLITE.md.
 Keep JSON output versioned, errors structured, and diagnostics on stderr.
 Generate shell completion from the executable parser only. Completion must stay
 offline; historical inventory entries are never executable candidates or app IDs.

@@ -346,7 +346,7 @@ fn pending(response: &http::Response) -> Result<()> {
     Ok(())
 }
 
-fn output(response: http::Response) -> Result<Output> {
+fn output(mut response: http::Response) -> Result<Output> {
     if !(200..=599).contains(&response.status) || (300..=399).contains(&response.status) {
         return Err(fail(
             "api_redirect_refused",
@@ -355,7 +355,7 @@ fn output(response: http::Response) -> Result<Output> {
     }
     json(&response)?;
     Ok(Output {
-        body: String::from_utf8(response.body).map_err(|_| refused())?,
+        body: String::from_utf8(std::mem::take(&mut response.body)).map_err(|_| refused())?,
         exit_code: if response.status < 300 { 0 } else { 3 },
     })
 }
