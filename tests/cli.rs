@@ -69,6 +69,7 @@ fn catalog_keeps_aliases_and_retirement_distinct() {
             "secrets add",
             "secrets update",
             "secrets status",
+            "sqlite download",
             "completion bash",
             "completion zsh",
             "completion fish",

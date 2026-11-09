@@ -13,10 +13,11 @@ generated API contract; see [app calls](docs/API.md). `catalog` and `roadmap`
 remain offline.
 `completion bash`, `completion zsh` and `completion fish` generate offline shell completion from
 the implemented parser; see [shell completion](docs/COMPLETION.md).
-`app secrets list/create/rotate/status` stores supplied values through an
+`app secrets list/create/rotate/status/reveal/delete` stores supplied values through an
 owner-authenticated app session; [secret setup and semantics](docs/SECRETS.md)
-describe the required platform deployment. Secret reveal/deletion, activation
-and SQLite export remain planned.
+describe the required platform deployment. `app sqlite download` produces a
+private business-data debugging export; see [SQLite download](docs/SQLITE.md).
+App activation and protected retirement remain separate work.
 
 ## Start here
 

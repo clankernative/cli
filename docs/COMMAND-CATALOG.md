@@ -48,7 +48,7 @@ until live instance qualification; see [company login](LOGIN.md),
 | `alerts` | Historical alias of monitors; no separate implementation is planned. | `day2 monitors APP` | M3 |
 | `dashboards` | Read authorized application dashboard links. | `day2 dashboards APP` | M3 |
 | `sqlite backups` | List metadata for authorized application snapshots. | `day2 sqlite backups APP` | M3 |
-| `sqlite download` | Download an explicitly selected and authorized application snapshot. | `day2 sqlite download APP` | M3 |
+| `sqlite download` | Download an explicitly selected and authorized application snapshot. | `day2 app sqlite download APP` | M3 |
 | `sqlite tables` | Inspect table names in an authorized snapshot. | `day2 sqlite tables APP` | M3 |
 | `sqlite schema` | Inspect the schema of an authorized snapshot. | `day2 sqlite schema APP` | M3 |
 | `sqlite query` | Run a bounded read-only query against an authorized snapshot. | `day2 sqlite query APP` | M3 |

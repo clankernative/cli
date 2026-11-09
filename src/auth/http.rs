@@ -4,17 +4,21 @@ use serde::Deserialize;
 use std::{collections::BTreeMap, time::Duration};
 
 use super::{MAX_DOCUMENT, Result, Secret, fail, invalid};
+use zeroize::Zeroize as _;
 
 pub(super) enum BodyLimit {
     Auth,
     Api,
+    SecretValue,
+    Sqlite,
 }
 
 impl BodyLimit {
     const fn bytes(self) -> u64 {
         match self {
-            Self::Auth => 65_536,
+            Self::Auth | Self::SecretValue => 65_536,
             Self::Api => 1_048_576,
+            Self::Sqlite => 16_777_216,
         }
     }
 }
@@ -84,6 +88,12 @@ pub(super) struct Response {
     pub(super) status: u16,
     pub(super) headers: Vec<(String, String)>,
     pub(super) body: Vec<u8>,
+}
+
+impl Drop for Response {
+    fn drop(&mut self) {
+        self.body.zeroize();
+    }
 }
 
 impl Response {

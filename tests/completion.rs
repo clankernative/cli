@@ -67,13 +67,13 @@ fn fish_completes_nested_commands_without_configuration() {
     for (input, required, excluded) in [
         (
             "day2 app ",
-            &["owners", "secrets"][..],
-            &["prototype", "sqlite", "publish", "snapshot"][..],
+            &["owners", "secrets", "sqlite"][..],
+            &["prototype", "publish", "snapshot"][..],
         ),
         (
             "day2 app secrets ",
-            &["list", "create", "rotate", "status"][..],
-            &["reveal", "delete", "activate"][..],
+            &["list", "create", "rotate", "status", "reveal", "delete"][..],
+            &["activate"][..],
         ),
     ] {
         let mut shell = Command::new("fish")
@@ -139,7 +139,8 @@ fn bash_completes_implemented_commands_without_historical_placeholders() {
     let choices: Vec<_> = text.lines().collect();
     assert!(choices.contains(&"owners"), "{choices:?}");
     assert!(choices.contains(&"secrets"), "{choices:?}");
-    for planned in ["prototype", "sqlite", "publish", "snapshot"] {
+    assert!(choices.contains(&"sqlite"), "{choices:?}");
+    for planned in ["prototype", "publish", "snapshot"] {
         assert!(!choices.contains(&planned), "{choices:?}");
     }
 }
