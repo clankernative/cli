@@ -1,9 +1,12 @@
 # Install the employee CLI
 
-Release v0.3.0 provides the standalone employee frontend for Apple Silicon macOS
+Release v0.4.0 provides the standalone employee frontend for Apple Silicon macOS
 15+ and x86_64 Linux with glibc 2.39+ (for example Ubuntu 24.04 or Debian 13).
 Windows, Intel macOS, Linux ARM64 and musl targets have no qualified archive.
 This does not install Platform's source-bound operator tools or Roc recipes.
+Secret management requires the matching protocol-2 Platform deployment; reveal,
+deletion and SQLite download enforce current app ownership. Installing this
+release does not upgrade the platform or grant permissions.
 
 Install GitHub CLI (`gh`), curl, tar and a SHA-256 tool through your usual package
 manager. A GitHub account or login is not required. Download the installer and
@@ -11,9 +14,9 @@ its signed verification bundle from the exact release, verify its provenance,
 then run it:
 
 ```console
-curl --fail --location --proto '=https' --proto-redir '=https' https://github.com/clankernative/cli/releases/download/v0.3.0/install.sh -o install.sh
-curl --fail --location --proto '=https' --proto-redir '=https' https://github.com/clankernative/cli/releases/download/v0.3.0/install.sh.sigstore.jsonl -o install.sh.sigstore.jsonl
-gh attestation verify install.sh --bundle install.sh.sigstore.jsonl --repo clankernative/cli --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref refs/tags/v0.3.0 --deny-self-hosted-runners
+curl --fail --location --proto '=https' --proto-redir '=https' https://github.com/clankernative/cli/releases/download/v0.4.0/install.sh -o install.sh
+curl --fail --location --proto '=https' --proto-redir '=https' https://github.com/clankernative/cli/releases/download/v0.4.0/install.sh.sigstore.jsonl -o install.sh.sigstore.jsonl
+gh attestation verify install.sh --bundle install.sh.sigstore.jsonl --repo clankernative/cli --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref refs/tags/v0.4.0 --deny-self-hosted-runners
 sh install.sh
 ```
 
