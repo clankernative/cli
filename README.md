@@ -43,7 +43,7 @@ It does not claim live provider verification.
 
 ## Install
 
-Release [v0.4.0](https://github.com/clankernative/cli/releases/tag/v0.4.0) adds owner-authorized
+Release [v0.4.1](https://github.com/clankernative/cli/releases/tag/v0.4.1) includes owner-authorized
 secret reveal/deletion and business-data SQLite download. It retains secret
 creation/rotation/status and offline Bash, Zsh and Fish completion.
 These operations require the matching platform endpoints, current ownership and

@@ -304,11 +304,15 @@ fn sqlite_using(
         || snapshot.actor != client.actor()
         || !snapshot.authority.valid()
         || snapshot.maximum_bytes != 16_777_216
-        || snapshot.artifact.len() != 64
         || !snapshot
             .artifact
-            .bytes()
-            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+            .strip_prefix("sha256:")
+            .is_some_and(|digest| {
+                digest.len() == 64
+                    && digest
+                        .bytes()
+                        .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+            })
     {
         return Err(protocol());
     }
@@ -458,19 +462,36 @@ mod tests {
     }
     #[test]
     fn sqlite_download_checks_artifact_scope_and_header_before_creating_output() {
-        let meta = json!({"protocol":1,"kind":"app-sqlite","scope":"company/production/reports","actor":"employee@company.example","authority":super::super::tests::snapshot()["authority"],"artifact":"a".repeat(64),"maximum_bytes":16_777_216});
+        let artifact = format!("sha256:{}", "a".repeat(64));
+        let meta = json!({"protocol":1,"kind":"app-sqlite","scope":"company/production/reports","actor":"employee@company.example","authority":super::super::tests::snapshot()["authority"],"artifact":artifact,"maximum_bytes":16_777_216});
         let reply = json!({"protocol":1,"kind":"app-sqlite","scope":meta["scope"],"actor":meta["actor"],"authority":meta["authority"],"artifact":meta["artifact"],"request_id":"sqlite-1"});
-        for bad in [false, true] {
+        for (snapshot_artifact, response_artifact, accepted, request_count) in [
+            (artifact.clone(), artifact.clone(), true, 2),
+            (
+                artifact.clone(),
+                format!("sha256:{}", "b".repeat(64)),
+                false,
+                2,
+            ),
+            ("a".repeat(64), artifact.clone(), false, 1),
+            (
+                format!("sha256:{}", "A".repeat(64)),
+                artifact.clone(),
+                false,
+                1,
+            ),
+            (format!("sha256:{}", "a".repeat(63)), artifact, false, 1),
+        ] {
             let path = output_path();
             let args = Download {
                 context: super::super::tests::context(),
                 output: path.0.clone(),
                 request_id: "sqlite-1".into(),
             };
+            let mut meta = meta.clone();
+            meta["artifact"] = json!(snapshot_artifact);
             let mut reply = reply.clone();
-            if bad {
-                reply["artifact"] = json!("b".repeat(64));
-            }
+            reply["artifact"] = json!(response_artifact);
             let bytes = b"SQLite format 3\0synthetic fixture".to_vec();
             let (client, requests) = auth::app_test::download_client(
                 vec![(200, meta.to_string())],
@@ -478,12 +499,12 @@ mod tests {
                 bytes.clone(),
             );
             let result = sqlite_using(&args, |_| Ok(client));
-            assert_eq!(result.is_ok(), !bad);
-            assert_eq!(requests.borrow().len(), 2);
-            if bad {
-                assert!(!path.0.exists());
-            } else {
+            assert_eq!(result.is_ok(), accepted);
+            assert_eq!(requests.borrow().len(), request_count);
+            if accepted {
                 assert_eq!(std::fs::read(&path.0).unwrap(), bytes);
+            } else {
+                assert!(!path.0.exists());
             }
         }
     }
