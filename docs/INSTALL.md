@@ -1,6 +1,6 @@
 # Install the employee CLI
 
-Release v0.4.1 provides the standalone employee frontend for Apple Silicon macOS
+Release v0.4.2 provides the standalone employee frontend for Apple Silicon macOS
 15+ and x86_64 Linux with glibc 2.39+ (for example Ubuntu 24.04 or Debian 13).
 Windows, Intel macOS, Linux ARM64 and musl targets have no qualified archive.
 This does not install Platform's source-bound operator tools or Roc recipes.
@@ -14,9 +14,9 @@ its signed verification bundle from the exact release, verify its provenance,
 then run it:
 
 ```console
-curl --fail --location --proto '=https' --proto-redir '=https' https://github.com/clankernative/cli/releases/download/v0.4.1/install.sh -o install.sh
-curl --fail --location --proto '=https' --proto-redir '=https' https://github.com/clankernative/cli/releases/download/v0.4.1/install.sh.sigstore.jsonl -o install.sh.sigstore.jsonl
-gh attestation verify install.sh --bundle install.sh.sigstore.jsonl --repo clankernative/cli --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref refs/tags/v0.4.1 --deny-self-hosted-runners
+curl --fail --location --proto '=https' --proto-redir '=https' https://github.com/clankernative/cli/releases/download/v0.4.2/install.sh -o install.sh
+curl --fail --location --proto '=https' --proto-redir '=https' https://github.com/clankernative/cli/releases/download/v0.4.2/install.sh.sigstore.jsonl -o install.sh.sigstore.jsonl
+gh attestation verify install.sh --bundle install.sh.sigstore.jsonl --repo clankernative/cli --signer-workflow clankernative/cli/.github/workflows/release.yml --source-ref refs/tags/v0.4.2 --deny-self-hosted-runners
 sh install.sh
 ```
 

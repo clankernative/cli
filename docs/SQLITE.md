@@ -28,8 +28,8 @@ using a new destination and request ID. HTTP requests are never retried.
 
 Artifact identities use Platform's canonical `sha256:` prefix and 64 lowercase
 hexadecimal digits. The metadata and downloaded response must name the same
-artifact. Version 0.4.1 corrects the validator that refused these identities in
-0.4.0; use 0.4.1 or later for SQLite download.
+artifact. Version 0.4.2 corrects the validator that refused these identities in
+0.4.0; use 0.4.2 or later for SQLite download.
 
 Snapshot catalogs, historical backup download, arbitrary remote queries, import
 and restore remain separate operations. Local tests do not qualify hosted login.
