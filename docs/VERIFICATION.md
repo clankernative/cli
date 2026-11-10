@@ -171,6 +171,10 @@ restrictions. These are independent of main's mandatory checks and PR policy.
 Read back actual repository settings before publishing; a configuration file
 alone is not enforcement.
 
+The installer process fixture serves only assets for the compiled package version
+and runs without `--version`. A stale installer default fails the same positive
+case that checks checksums, provenance, file preservation and retained notices.
+
 Every archive and installer includes a signed Sigstore verification bundle. The
 installer uses `gh attestation verify --bundle`, which avoids the GitHub API
 authentication required by ordinary online lookup. The unit fixture rejects a

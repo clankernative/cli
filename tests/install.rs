@@ -3,6 +3,13 @@
 
 use std::{fs, os::unix::fs::PermissionsExt as _, path::PathBuf, process::Command};
 
+fn archive_name() -> String {
+    format!(
+        "day2-cli-v{}-aarch64-apple-darwin.tar.gz",
+        env!("CARGO_PKG_VERSION")
+    )
+}
+
 #[cfg(test)]
 struct Fixture {
     root: PathBuf,
@@ -31,7 +38,7 @@ impl Fixture {
             ),
             (
                 "curl",
-                "echo download >> \"$INSTALL_FIXTURE/network\"\nfor arg do case \"$arg\" in https:*) source=${arg##*/};; esac; done\nwhile [ \"$1\" != -o ]; do shift; done\ncp \"$INSTALL_FIXTURE/assets/$source\" \"$2\"",
+                "echo download >> \"$INSTALL_FIXTURE/network\"\nfor arg do case \"$arg\" in https:*) case \"$arg\" in \"https://github.com/clankernative/cli/releases/download/v$INSTALL_FIXTURE_VERSION/\"*) source=${arg##*/};; *) exit 4;; esac;; esac; done\nwhile [ \"$1\" != -o ]; do shift; done\ncp \"$INSTALL_FIXTURE/assets/$source\" \"$2\"",
             ),
             (
                 "gh",
@@ -48,9 +55,7 @@ impl Fixture {
         ] {
             fs::write(fixture.root.join("payload/day2-cli").join(name), contents).unwrap();
         }
-        let archive = fixture
-            .root
-            .join("assets/day2-cli-v0.3.0-aarch64-apple-darwin.tar.gz");
+        let archive = fixture.root.join("assets").join(archive_name());
         assert!(
             Command::new("tar")
                 .args(["-czf"])
@@ -65,7 +70,8 @@ impl Fixture {
         fs::write(
             fixture
                 .root
-                .join("assets/day2-cli-v0.3.0-aarch64-apple-darwin.tar.gz.sigstore.jsonl"),
+                .join("assets")
+                .join(format!("{}.sigstore.jsonl", archive_name())),
             "synthetic test bundle",
         )
         .unwrap();
@@ -79,8 +85,9 @@ impl Fixture {
         fs::write(
             fixture.root.join("assets/SHA256SUMS"),
             format!(
-                "{}  day2-cli-v0.3.0-aarch64-apple-darwin.tar.gz\n",
-                digest.split_whitespace().next().unwrap()
+                "{}  {}\n",
+                digest.split_whitespace().next().unwrap(),
+                archive_name()
             ),
         )
         .unwrap();
@@ -103,6 +110,7 @@ impl Fixture {
                 format!("{}:/usr/bin:/bin", self.root.join("tools").display()),
             )
             .env("INSTALL_FIXTURE", &self.root)
+            .env("INSTALL_FIXTURE_VERSION", env!("CARGO_PKG_VERSION"))
             .env("INSTALL_ATTEST_EXIT", attest_exit)
             .output()
             .unwrap()
@@ -144,16 +152,13 @@ fn installer_preserves_existing_executables_and_dangling_symlinks_before_network
 }
 
 #[test]
-fn installer_requires_both_checksum_and_provenance_and_retains_notices() {
+fn installer_defaults_to_package_release_and_requires_verified_assets() {
     for failure in ["checksum", "missing_bundle", "attestation", "none"] {
         let fixture = Fixture::new();
         if failure == "checksum" {
             fs::write(
                 fixture.root.join("assets/SHA256SUMS"),
-                format!(
-                    "{}  day2-cli-v0.3.0-aarch64-apple-darwin.tar.gz\n",
-                    "0".repeat(64)
-                ),
+                format!("{}  {}\n", "0".repeat(64), archive_name()),
             )
             .unwrap();
         }
@@ -161,7 +166,8 @@ fn installer_requires_both_checksum_and_provenance_and_retains_notices() {
             fs::remove_file(
                 fixture
                     .root
-                    .join("assets/day2-cli-v0.3.0-aarch64-apple-darwin.tar.gz.sigstore.jsonl"),
+                    .join("assets")
+                    .join(format!("{}.sigstore.jsonl", archive_name())),
             )
             .unwrap();
         }
